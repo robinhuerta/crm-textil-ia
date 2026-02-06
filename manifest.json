@@ -1,0 +1,26 @@
+
+{
+  "short_name": "5:40 Radio",
+  "name": "La Nueva 5:40 Radio",
+  "icons": [
+    {
+      "src": "https://www.appcreator24.com/srv/imgs/cards/temp/36292.png?ts=1768436838428",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://www.appcreator24.com/srv/imgs/cards/temp/36292.png?ts=1768436838428",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0c121e",
+  "background_color": "#0c121e",
+  "orientation": "portrait",
+  "scope": "/",
+  "description": "La emisora oficial de La Nueva 5:40. Ritmo tropical, eventos y más."
+}
