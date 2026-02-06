@@ -13,9 +13,9 @@ const BIRTHDAY_GREETINGS = [
     dj1: 'DJ Principal',
     dj2: 'DJ Asistente',
     dialogues: [
-      { speaker: 'dj1', text: '¡Oeeeee mi gente bonita de La Nueva 5:40! ¡Miren quién está de cumpleaños hoy! Ni más ni menos que nuestra querida amiga y familia ANA MITMA QUISPE... ¡Fuego causa, qué día tan especial!' },
+      { speaker: 'dj1', text: '¡Oeeeee mi gente bonita de La Nueva cinco cuarenta radio! ¡Miren quién está de cumpleaños hoy! Ni más ni menos que nuestra querida amiga y familia ANA MITMA QUISPE... ¡Fuego causa, qué día tan especial!' },
       { speaker: 'dj2', text: '¡Habla batería! Así es pues causa, hoy mandamos los saluditos más chéveres para Ana, que siempre nos sintoniza desde tempranito. ¡Que la pasen lindo con toda la familia, que no falte la torta y la música!' },
-      { speaker: 'dj1', text: '¡Exacto mi broder! Y para ti Anita, que Dios te bendiga con mucha salud, amor y éxitos en este nuevo año de vida. ¡Que todos tus sueños se hagan realidad! De parte de toda la familia de La Nueva 5:40 Radio... ¡FELIZ CUMPLEAÑOS!' }
+      { speaker: 'dj1', text: '¡Exacto mi broder! Y para ti Anita, que Dios te bendiga con mucha salud, amor y éxitos en este nuevo año de vida. ¡Que todos tus sueños se hagan realidad! De parte de toda la familia de La Nueva cinco cuarenta radio... ¡FELIZ CUMPLEAÑOS!' }
     ]
   }
 ];
@@ -29,9 +29,9 @@ const PROMO_SALUDITOS = {
   dj1: 'DJ Principal',
   dj2: 'DJ Asistente',
   dialogues: [
-    { speaker: 'dj1', text: '¡Atención mi gente linda de La Nueva 5:40! ¿Quieres mandar un saludito especial a alguien? ¿Un cumpleaños, un aniversario, una dedicatoria romántica? ¡Pues llegó tu momento!' },
-    { speaker: 'dj2', text: '¡Así es causa! Ahora puedes enviar tus saluditos directamente desde nuestra app. Es súper fácil, solo escríbenos y nosotros lo leemos al aire para que toda la familia 5:40 lo escuche.' },
-    { speaker: 'dj1', text: '¡No te quedes sin participar! Manda tu saludito ahora mismo y sorprende a esa persona especial. ¡La Nueva 5:40, tu radio de siempre, conectando corazones!' }
+    { speaker: 'dj1', text: '¡Atención mi gente linda de La Nueva cinco cuarenta radio! ¿Quieres mandar un saludito especial a alguien? ¿Un cumpleaños, un aniversario, una dedicatoria romántica? ¡Pues llegó tu momento!' },
+    { speaker: 'dj2', text: '¡Así es causa! Ahora puedes enviar tus saluditos directamente desde nuestra app. Es súper fácil, solo escríbenos y nosotros lo leemos al aire para que toda la familia cinco cuarenta radio lo escuche.' },
+    { speaker: 'dj1', text: '¡No te quedes sin participar! Manda tu saludito ahora mismo y sorprende a esa persona especial. ¡La Nueva cinco cuarenta radio, tu radio de siempre, conectando corazones!' }
   ]
 };
 
@@ -161,8 +161,8 @@ const ShortsView: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#a3cf33]/20 rounded-full blur-[100px] animate-pulse"></div>
           </div>
 
-          {/* Contenido principal */}
-          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center h-full gap-8 p-6 lg:p-12">
+          {/* Contenido principal - scrollable en móvil */}
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-start lg:justify-center h-full gap-4 lg:gap-8 p-4 lg:p-12 overflow-y-auto pt-16">
 
             {/* Imagen del cumpleañero */}
             <div className="relative group flex-shrink-0">
