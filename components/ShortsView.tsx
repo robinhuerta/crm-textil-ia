@@ -11,9 +11,29 @@ const BIRTHDAY_GREETINGS = [
     image: 'https://i.postimg.cc/76rTMyk2/v.jpg',
     message: '¡Felicidades en tu día especial!',
     dj1: 'DJ Principal',
-    dj2: 'DJ Asistente'
+    dj2: 'DJ Asistente',
+    dialogues: [
+      { speaker: 'dj1', text: '¡Oeeeee mi gente bonita de La Nueva 5:40! ¡Miren quién está de cumpleaños hoy! Ni más ni menos que nuestra querida amiga y familia ANA MITMA QUISPE... ¡Fuego causa, qué día tan especial!' },
+      { speaker: 'dj2', text: '¡Habla batería! Así es pues causa, hoy mandamos los saluditos más chéveres para Ana, que siempre nos sintoniza desde tempranito. ¡Que la pasen lindo con toda la familia, que no falte la torta y la música!' },
+      { speaker: 'dj1', text: '¡Exacto mi broder! Y para ti Anita, que Dios te bendiga con mucha salud, amor y éxitos en este nuevo año de vida. ¡Que todos tus sueños se hagan realidad! De parte de toda la familia de La Nueva 5:40 Radio... ¡FELIZ CUMPLEAÑOS!' }
+    ]
   }
 ];
+
+// Promoción para enviar saluditos
+const PROMO_SALUDITOS = {
+  id: 'promo-saluditos',
+  videoUrl: 'https://streamable.com/e/pf24sg',
+  title: '¡Envía tus Saluditos!',
+  subtitle: 'Cumpleaños, Aniversarios, Dedicatorias y más',
+  dj1: 'DJ Principal',
+  dj2: 'DJ Asistente',
+  dialogues: [
+    { speaker: 'dj1', text: '¡Atención mi gente linda de La Nueva 5:40! ¿Quieres mandar un saludito especial a alguien? ¿Un cumpleaños, un aniversario, una dedicatoria romántica? ¡Pues llegó tu momento!' },
+    { speaker: 'dj2', text: '¡Así es causa! Ahora puedes enviar tus saluditos directamente desde nuestra app. Es súper fácil, solo escríbenos y nosotros lo leemos al aire para que toda la familia 5:40 lo escuche.' },
+    { speaker: 'dj1', text: '¡No te quedes sin participar! Manda tu saludito ahora mismo y sorprende a esa persona especial. ¡La Nueva 5:40, tu radio de siempre, conectando corazones!' }
+  ]
+};
 
 const ShortsView: React.FC = () => {
   const [shorts, setShorts] = useState<RadioShort[]>([]);
@@ -21,9 +41,67 @@ const ShortsView: React.FC = () => {
   const wasPlayingRef = useRef(false);
   const [showBirthdays, setShowBirthdays] = useState(true);
 
+  // Estados para Text-to-Speech
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [activeDialogue, setActiveDialogue] = useState(-1);
+  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+
   const loadShorts = () => {
     const saved = localStorage.getItem('radio_shorts');
     setShorts(saved ? JSON.parse(saved) : MOCK_SHORTS);
+  };
+
+  // Función para leer los diálogos
+  const speakDialogues = (dialogues: { speaker: string; text: string }[]) => {
+    if ('speechSynthesis' in window) {
+      // Cancelar cualquier lectura anterior
+      window.speechSynthesis.cancel();
+
+      let currentIndex = 0;
+
+      const speakNext = () => {
+        if (currentIndex < dialogues.length) {
+          setActiveDialogue(currentIndex);
+          const utterance = new SpeechSynthesisUtterance(dialogues[currentIndex].text);
+          utterance.lang = 'es-ES';
+          // Voz más vibrante estilo locutor de radio
+          utterance.rate = 1.35; // ¡Más rápido y eufórico!
+          utterance.volume = 1.0; // Volumen máximo
+          // DJ Principal: voz potente | DJ Asistente: voz alegre y animada
+          utterance.pitch = dialogues[currentIndex].speaker === 'dj1' ? 1.0 : 1.4;
+
+          utterance.onend = () => {
+            currentIndex++;
+            if (currentIndex < dialogues.length) {
+              setTimeout(speakNext, 500); // Pausa entre diálogos
+            } else {
+              setIsSpeaking(false);
+              setActiveDialogue(-1);
+            }
+          };
+
+          speechRef.current = utterance;
+          window.speechSynthesis.speak(utterance);
+        }
+      };
+
+      setIsSpeaking(true);
+      speakNext();
+    }
+  };
+
+  const stopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    setActiveDialogue(-1);
+  };
+
+  const toggleSpeech = (dialogues: { speaker: string; text: string }[]) => {
+    if (isSpeaking) {
+      stopSpeaking();
+    } else {
+      speakDialogues(dialogues);
+    }
   };
 
   useEffect(() => {
@@ -37,6 +115,7 @@ const ShortsView: React.FC = () => {
     // Cleanup: Restaurar radio al salir del componente
     return () => {
       window.removeEventListener('radio_content_updated', loadShorts);
+      window.speechSynthesis.cancel(); // Detener voz al salir
       if (wasPlayingRef.current) {
         window.dispatchEvent(new CustomEvent('radio_playback_control', { detail: { action: 'play' } }));
       }
@@ -113,8 +192,20 @@ const ShortsView: React.FC = () => {
 
               {/* Diálogo de locutores */}
               <div className="space-y-4 bg-black/40 backdrop-blur-sm rounded-3xl p-5 border border-white/10">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-[#a3cf33] rounded-full flex items-center justify-center flex-shrink-0">
+                {/* Botón para escuchar */}
+                <button
+                  onClick={() => toggleSpeech(birthday.dialogues)}
+                  className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isSpeaking
+                    ? 'bg-red-500 text-white animate-pulse hover:bg-red-600'
+                    : 'bg-gradient-to-r from-[#a3cf33] to-yellow-400 text-black hover:scale-105'
+                    }`}
+                >
+                  <i className={`fa-solid ${isSpeaking ? 'fa-stop' : 'fa-volume-high'} text-lg`}></i>
+                  {isSpeaking ? '⏹️ Detener' : '🎙️ Escuchar Saludo'}
+                </button>
+
+                <div className={`flex items-start gap-3 p-3 rounded-2xl transition-all duration-500 ${activeDialogue === 0 ? 'bg-[#a3cf33]/20 ring-2 ring-[#a3cf33] scale-[1.02]' : ''}`}>
+                  <div className={`w-10 h-10 bg-[#a3cf33] rounded-full flex items-center justify-center flex-shrink-0 ${activeDialogue === 0 ? 'animate-pulse' : ''}`}>
                     <i className="fa-solid fa-microphone text-black text-sm"></i>
                   </div>
                   <div className="flex-1">
@@ -125,8 +216,8 @@ const ShortsView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className={`flex items-start gap-3 p-3 rounded-2xl transition-all duration-500 ${activeDialogue === 1 ? 'bg-pink-500/20 ring-2 ring-pink-500 scale-[1.02]' : ''}`}>
+                  <div className={`w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center flex-shrink-0 ${activeDialogue === 1 ? 'animate-pulse' : ''}`}>
                     <i className="fa-solid fa-headphones text-white text-sm"></i>
                   </div>
                   <div className="flex-1">
@@ -137,8 +228,8 @@ const ShortsView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-[#a3cf33] rounded-full flex items-center justify-center flex-shrink-0">
+                <div className={`flex items-start gap-3 p-3 rounded-2xl transition-all duration-500 ${activeDialogue === 2 ? 'bg-[#a3cf33]/20 ring-2 ring-[#a3cf33] scale-[1.02]' : ''}`}>
+                  <div className={`w-10 h-10 bg-[#a3cf33] rounded-full flex items-center justify-center flex-shrink-0 ${activeDialogue === 2 ? 'animate-pulse' : ''}`}>
                     <i className="fa-solid fa-microphone text-black text-sm"></i>
                   </div>
                   <div className="flex-1">
@@ -174,6 +265,114 @@ const ShortsView: React.FC = () => {
           </div>
         </div>
       ))}
+
+      {/* 📢 PROMOCIÓN DE SALUDITOS */}
+      <div
+        key={PROMO_SALUDITOS.id}
+        className="relative w-full h-full snap-start flex flex-col bg-gradient-to-br from-slate-950 via-blue-950/40 to-cyan-950/30 overflow-hidden"
+      >
+        {/* Fondo decorativo */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 rounded-full animate-ping"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                backgroundColor: ['#00E5FF', '#a3cf33', '#FF69B4', '#FFD700'][i % 4],
+                animationDuration: `${2 + Math.random() * 3}s`,
+                animationDelay: `${Math.random() * 2}s`,
+                opacity: 0.5
+              }}
+            />
+          ))}
+          <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#a3cf33]/20 rounded-full blur-[100px] animate-pulse"></div>
+        </div>
+
+        {/* Contenido principal - scrollable en móvil */}
+        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-start lg:justify-center h-full gap-4 lg:gap-8 p-4 lg:p-12 overflow-y-auto">
+
+          {/* Video de Streamable - vertical en móvil */}
+          <div className="relative flex-shrink-0 w-full max-w-[280px] lg:max-w-sm">
+            <div className="absolute -inset-2 lg:-inset-4 bg-gradient-to-r from-cyan-500 via-[#a3cf33] to-blue-500 rounded-2xl lg:rounded-3xl blur-lg lg:blur-xl opacity-50 animate-pulse"></div>
+            <div className="relative rounded-xl lg:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 aspect-[9/16]">
+              <iframe
+                src={PROMO_SALUDITOS.videoUrl}
+                className="absolute inset-0 w-full h-full"
+                frameBorder="0"
+                allow="autoplay; fullscreen"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+
+          {/* Texto de invitación */}
+          <div className="text-center lg:text-left space-y-6 max-w-lg">
+            <div className="space-y-3">
+              <span className="bg-gradient-to-r from-cyan-500 to-[#a3cf33] text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-xl inline-block animate-pulse">
+                📢 ¡Participa Ahora!
+              </span>
+              <h2 className="text-3xl lg:text-4xl font-black text-white uppercase tracking-tight leading-tight">
+                {PROMO_SALUDITOS.title}
+              </h2>
+              <p className="text-cyan-300 text-sm font-bold">{PROMO_SALUDITOS.subtitle}</p>
+            </div>
+
+            {/* Diálogos con voz */}
+            <div className="space-y-4 bg-black/40 backdrop-blur-sm rounded-3xl p-5 border border-white/10">
+              {/* Botón para escuchar */}
+              <button
+                onClick={() => toggleSpeech(PROMO_SALUDITOS.dialogues)}
+                className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isSpeaking
+                  ? 'bg-red-500 text-white animate-pulse hover:bg-red-600'
+                  : 'bg-gradient-to-r from-cyan-500 to-[#a3cf33] text-black hover:scale-105'
+                  }`}
+              >
+                <i className={`fa-solid ${isSpeaking ? 'fa-stop' : 'fa-volume-high'} text-lg`}></i>
+                {isSpeaking ? '⏹️ Detener' : '🎙️ Escuchar Invitación'}
+              </button>
+
+              {PROMO_SALUDITOS.dialogues.map((dialogue, idx) => (
+                <div key={idx} className={`flex items-start gap-3 p-3 rounded-2xl transition-all duration-500 ${activeDialogue === idx ? (dialogue.speaker === 'dj1' ? 'bg-[#a3cf33]/20 ring-2 ring-[#a3cf33]' : 'bg-cyan-500/20 ring-2 ring-cyan-500') + ' scale-[1.02]' : ''}`}>
+                  <div className={`w-10 h-10 ${dialogue.speaker === 'dj1' ? 'bg-[#a3cf33]' : 'bg-cyan-500'} rounded-full flex items-center justify-center flex-shrink-0 ${activeDialogue === idx ? 'animate-pulse' : ''}`}>
+                    <i className={`fa-solid ${dialogue.speaker === 'dj1' ? 'fa-microphone text-black' : 'fa-headphones text-white'} text-sm`}></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className={`${dialogue.speaker === 'dj1' ? 'text-[#a3cf33]' : 'text-cyan-400'} text-[10px] font-black uppercase tracking-wider mb-1`}>
+                      {dialogue.speaker === 'dj1' ? PROMO_SALUDITOS.dj1 : PROMO_SALUDITOS.dj2}
+                    </p>
+                    <p className="text-white text-sm leading-relaxed">{dialogue.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Call to action */}
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-slate-400 text-[9px] font-bold uppercase tracking-widest">
+              <span className="animate-bounce">📱</span>
+              <span>Usa nuestra app y manda tu saludito</span>
+              <span className="animate-bounce">💬</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Badge */}
+        <div className="absolute top-6 left-6 z-20">
+          <span className="bg-gradient-to-r from-cyan-500 to-[#a3cf33] text-black px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-2xl inline-flex items-center gap-2">
+            <i className="fa-solid fa-bullhorn"></i>
+            Promo 5:40
+          </span>
+        </div>
+
+        {/* Indicador de scroll */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 animate-bounce">
+          <span className="text-slate-500 text-[8px] font-bold uppercase tracking-widest">Desliza para más</span>
+          <i className="fa-solid fa-chevron-down text-cyan-400"></i>
+        </div>
+      </div>
+
 
       {/* Publicidad Regular */}
       {shorts.length === 0 && !showBirthdays ? (
