@@ -105,14 +105,7 @@ export const MOCK_VIDEOS: YouTubeVideo[] = [
     }
 ];
 
-export const MOCK_SHORTS: RadioShort[] = [
-    {
-        id: '1',
-        title: '¡Gran Evento La Nueva 5:40!',
-        videoUrl: '',
-        thumbnail: 'https://scontent-lim1-1.xx.fbcdn.net/v/t39.30808-6/624322618_4323668361243716_4084299994380218673_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeGESL9cV9wh3nFT0qFO-TAAXqLswdRw6wJeouzB1HDrAq6aoU-VrvsjF5FhBIyRt_NnPo47emAU9yx2Cqu3Gczk&_nc_ohc=vZL474JK07gQ7kNvwF9L7Q7&_nc_oc=AdlykudhZE9_XGFD4M0xOxZRXT9b28cVBVW36t88AEs1Wuj3_UwH8DE0IigyOXFihCQ&_nc_zt=23&_nc_ht=scontent-lim1-1.xx&_nc_gid=xwczPbBOmoPf_OXANxaqSA&oh=00_Afrs0ybA7809gAuEU5EIOjWI_1ScGJ5ibhd83Tj93EYS_Q&oe=698074F5'
-    }
-];
+export const MOCK_SHORTS: RadioShort[] = [];
 
 export const MOCK_TRACKS: MusicTrack[] = [
     {
