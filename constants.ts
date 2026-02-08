@@ -166,3 +166,43 @@ export const MOCK_POLLS: RadioPoll[] = [
         ]
     }
 ];
+
+// Banco de preguntas para votaciones diarias automáticas
+export interface AutoPollQuestion {
+    id: string;
+    question: string;
+    options: string[];
+    category: string;
+}
+
+export const POLL_QUESTIONS_BANK: AutoPollQuestion[] = [
+    // Género Musical
+    { id: 'q1', category: 'genero', question: '¿Qué género quieres escuchar hoy?', options: ['Cumbia', 'Salsa', 'Huayno'] },
+    { id: 'q2', category: 'genero', question: '¿Con qué ritmo arrancamos el día?', options: ['Cumbia Norteña', 'Chicha', 'Tropical'] },
+    { id: 'q3', category: 'genero', question: '¿Qué música te pone de buen humor?', options: ['Cumbia Sanjuanera', 'Salsa Romántica', 'Huayno Moderno'] },
+    { id: 'q4', category: 'genero', question: '¿Qué género manda en tu barrio?', options: ['Cumbia Peruana', 'Chicha de Oro', 'Salsa Dura'] },
+
+    // Artistas
+    { id: 'q5', category: 'artista', question: '¿Cuál es tu grupo favorito?', options: ['Grupo 5', 'Armonía 10', 'Agua Marina'] },
+    { id: 'q6', category: 'artista', question: '¿Quién es el rey de la cumbia?', options: ['Grupo 5', 'Corazón Serrano', 'Los Hermanos Yaipén'] },
+    { id: 'q7', category: 'artista', question: '¿A quién quieres escuchar?', options: ['Armonía 10', 'Néctar', 'Papillón'] },
+    { id: 'q8', category: 'artista', question: '¿Cuál artista te hace bailar más?', options: ['Agua Marina', 'Grupo Néctar', 'Los Shapis'] },
+
+    // Preferencias
+    { id: 'q9', category: 'preferencia', question: '¿A qué hora escuchas más la radio?', options: ['Mañana', 'Tarde', 'Noche'] },
+    { id: 'q10', category: 'preferencia', question: '¿Cómo prefieres escuchar la radio?', options: ['Celular', 'Parlante', 'Computadora'] },
+    { id: 'q11', category: 'preferencia', question: '¿Con quién escuchas la radio?', options: ['Solo/a', 'Familia', 'Amigos'] },
+    { id: 'q12', category: 'preferencia', question: '¿Dónde escuchas la 5:40?', options: ['Casa', 'Trabajo', 'En la calle'] },
+
+    // Programación
+    { id: 'q13', category: 'programa', question: '¿Qué programa te gusta más?', options: ['Musical en vivo', 'Saluditos', 'Noticias del barrio'] },
+    { id: 'q14', category: 'programa', question: '¿Qué quieres más en la radio?', options: ['Más cumbia', 'Más saluditos', 'Más eventos'] },
+    { id: 'q15', category: 'programa', question: '¿Cuántas horas escuchas al día?', options: ['1-2 horas', '3-4 horas', 'Todo el día'] },
+
+    // Opinión
+    { id: 'q16', category: 'opinion', question: '¿Cómo está el ánimo hoy?', options: ['De fiesta 🎉', 'Tranquilo 😌', 'Romántico 💕'] },
+    { id: 'q17', category: 'opinion', question: '¿Qué día es mejor para bailar?', options: ['Viernes', 'Sábado', 'Domingo'] },
+    { id: 'q18', category: 'opinion', question: '¿Cumbia clásica o moderna?', options: ['Clásica de siempre', 'Moderna actual', 'Las dos'] },
+    { id: 'q19', category: 'opinion', question: '¿Te gustan los eventos en vivo?', options: ['¡Me encantan!', 'A veces', 'Prefiero escuchar'] },
+    { id: 'q20', category: 'opinion', question: '¿Qué te gusta más de la 5:40?', options: ['La música', 'Los locutores', 'El ambiente familiar'] }
+];

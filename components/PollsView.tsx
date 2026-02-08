@@ -1,5 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { POLL_QUESTIONS_BANK, AutoPollQuestion } from '../constants';
+import { GoogleGenAI } from "@google/genai";
 
 interface Poll {
    id: string;
@@ -8,10 +10,13 @@ interface Poll {
    votes: Record<string, number>;
    endsAt: string;
    createdAt: string;
+   sourceQuestionId?: string; // Para trackear qué pregunta del banco se usó
 }
 
 const STORAGE_KEY = 'radio540_polls';
 const VOTED_KEY = 'radio540_voted';
+const USED_QUESTIONS_KEY = 'radio540_used_questions'; // Preguntas ya usadas
+const POLL_DURATION_HOURS = 24; // Duración de cada encuesta
 
 const PollsView: React.FC = () => {
    const [poll, setPoll] = useState<Poll | null>(null);
@@ -22,23 +27,126 @@ const PollsView: React.FC = () => {
    const [newOptions, setNewOptions] = useState(['', '', '']);
    const [newDuration, setNewDuration] = useState(12);
    const [message, setMessage] = useState('');
+   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
-   // Load poll from localStorage
-   useEffect(() => {
-      const savedPoll = localStorage.getItem(STORAGE_KEY);
-      if (savedPoll) {
-         const parsed = JSON.parse(savedPoll) as Poll;
-         // Check if poll is still active
-         if (new Date(parsed.endsAt) > new Date()) {
-            setPoll(parsed);
-            // Check if user voted
-            const votedPolls = JSON.parse(localStorage.getItem(VOTED_KEY) || '[]');
-            setHasVoted(votedPolls.includes(parsed.id));
-         } else {
-            localStorage.removeItem(STORAGE_KEY);
+   // Función para obtener una pregunta aleatoria del banco que no se haya usado
+   const getRandomUnusedQuestion = useCallback((): AutoPollQuestion | null => {
+      const usedIds: string[] = JSON.parse(localStorage.getItem(USED_QUESTIONS_KEY) || '[]');
+      const unusedQuestions = POLL_QUESTIONS_BANK.filter(q => !usedIds.includes(q.id));
+
+      if (unusedQuestions.length === 0) {
+         // Resetear el banco si se agotaron todas las preguntas
+         localStorage.setItem(USED_QUESTIONS_KEY, '[]');
+         return POLL_QUESTIONS_BANK[Math.floor(Math.random() * POLL_QUESTIONS_BANK.length)];
+      }
+
+      return unusedQuestions[Math.floor(Math.random() * unusedQuestions.length)];
+   }, []);
+
+   // Función para generar pregunta con AI (respaldo)
+   const generateAIPoll = useCallback(async (): Promise<{ question: string; options: string[] } | null> => {
+      try {
+         const apiKey = process.env.API_KEY;
+         if (!apiKey) return null;
+
+         const ai = new GoogleGenAI({ apiKey });
+         const response = await ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: [{
+               parts: [{
+                  text: `Genera UNA pregunta de votación para una radio peruana de cumbia llamada "La Nueva 5:40".
+                  El tema puede ser: música, artistas peruanos de cumbia, preferencias del oyente, o diversión.
+                  Responde SOLO en este formato JSON exacto, sin explicaciones:
+                  {"question": "¿Tu pregunta aquí?", "options": ["Opción 1", "Opción 2", "Opción 3"]}`
+               }]
+            }]
+         });
+
+         const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+         const jsonMatch = text.match(/\{[\s\S]*\}/);
+         if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]);
          }
+         return null;
+      } catch (error) {
+         console.error('Error generating AI poll:', error);
+         return null;
       }
    }, []);
+
+   // Función para crear una encuesta automáticamente
+   const createAutoPoll = useCallback(async (questionData: { question: string; options: string[]; id?: string }) => {
+      const endsAt = new Date();
+      endsAt.setHours(endsAt.getHours() + POLL_DURATION_HOURS);
+
+      const votes: Record<string, number> = {};
+      questionData.options.forEach(opt => votes[opt] = 0);
+
+      const newPoll: Poll = {
+         id: Date.now().toString(),
+         question: questionData.question,
+         options: questionData.options,
+         votes,
+         endsAt: endsAt.toISOString(),
+         createdAt: new Date().toISOString(),
+         sourceQuestionId: questionData.id
+      };
+
+      // Marcar la pregunta como usada si viene del banco
+      if (questionData.id) {
+         const usedIds: string[] = JSON.parse(localStorage.getItem(USED_QUESTIONS_KEY) || '[]');
+         usedIds.push(questionData.id);
+         localStorage.setItem(USED_QUESTIONS_KEY, JSON.stringify(usedIds));
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newPoll));
+      setPoll(newPoll);
+      setHasVoted(false);
+   }, []);
+
+   // Load poll from localStorage OR auto-generate if none exists
+   useEffect(() => {
+      const initPoll = async () => {
+         const savedPoll = localStorage.getItem(STORAGE_KEY);
+
+         if (savedPoll) {
+            const parsed = JSON.parse(savedPoll) as Poll;
+            // Check if poll is still active
+            if (new Date(parsed.endsAt) > new Date()) {
+               setPoll(parsed);
+               // Check if user voted
+               const votedPolls = JSON.parse(localStorage.getItem(VOTED_KEY) || '[]');
+               setHasVoted(votedPolls.includes(parsed.id));
+               return;
+            } else {
+               localStorage.removeItem(STORAGE_KEY);
+            }
+         }
+
+         // No hay encuesta activa - generar una automáticamente
+         const randomQuestion = getRandomUnusedQuestion();
+
+         if (randomQuestion) {
+            // Usar pregunta del banco
+            await createAutoPoll({
+               question: randomQuestion.question,
+               options: randomQuestion.options,
+               id: randomQuestion.id
+            });
+         } else {
+            // Respaldo: usar AI
+            setIsGeneratingAI(true);
+            const aiQuestion = await generateAIPoll();
+            setIsGeneratingAI(false);
+
+            if (aiQuestion) {
+               await createAutoPoll(aiQuestion);
+            }
+         }
+      };
+
+      initPoll();
+   }, [getRandomUnusedQuestion, generateAIPoll, createAutoPoll]);
 
    // Countdown timer
    useEffect(() => {
@@ -263,9 +371,19 @@ const PollsView: React.FC = () => {
             </div>
          ) : (
             <div className="glass-dark p-12 rounded-[3.5rem] border border-white/5 text-center">
-               <p className="text-4xl mb-4">⏳</p>
-               <h3 className="text-2xl font-black text-white mb-2">No hay encuesta activa</h3>
-               <p className="text-slate-500 text-sm">Abre el panel de admin para crear una</p>
+               {isGeneratingAI ? (
+                  <>
+                     <p className="text-4xl mb-4 animate-pulse">🤖</p>
+                     <h3 className="text-2xl font-black text-white mb-2">Generando encuesta con AI...</h3>
+                     <p className="text-slate-500 text-sm">Espera un momento, estamos creando algo especial</p>
+                  </>
+               ) : (
+                  <>
+                     <p className="text-4xl mb-4 animate-spin">⏳</p>
+                     <h3 className="text-2xl font-black text-white mb-2">Cargando encuesta...</h3>
+                     <p className="text-slate-500 text-sm">Preparando la votación del día</p>
+                  </>
+               )}
             </div>
          )}
 
