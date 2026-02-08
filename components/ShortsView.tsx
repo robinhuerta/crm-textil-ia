@@ -122,8 +122,9 @@ const ShortsView: React.FC = () => {
           if (currentIndex < dialogues.length) {
             setActiveDialogue(currentIndex);
             const dialogue = dialogues[currentIndex];
-            // Ya no necesitamos texto de sacrificio porque el warmup funciona
-            const utterance = new SpeechSynthesisUtterance(dialogue.text);
+            // Agregar intro natural de DJ que suena intencional y absorbe el corte del TTS
+            const djIntro = '¡Ey ey ey! ';
+            const utterance = new SpeechSynthesisUtterance(djIntro + dialogue.text);
 
             // Obtener voz latinoamericana
             const voice = getLatinVoice(dialogue.speaker === 'dj2');
@@ -164,25 +165,9 @@ const ShortsView: React.FC = () => {
 
         setIsSpeaking(true);
 
-        // WARMUP LARGO: que TERMINA completamente antes del texto real
-        const warmup = new SpeechSynthesisUtterance('uno, dos, tres, cuatro, cinco');
-        warmup.volume = 0.01; // Casi silencioso
-        warmup.rate = 2; // Rápido
-
-        // Esperar a que el warmup TERMINE antes de hablar el texto real
-        warmup.onend = () => {
-          // IMPORTANTE: Cancelar todo antes de empezar el texto real (evitar crossfade)
-          window.speechSynthesis.cancel();
-          // Delay de 1 segundo para asegurar que esté completamente listo
-          setTimeout(speakNext, 1000);
-        };
-
-        warmup.onerror = () => {
-          // Si hay error, intentar de todos modos
-          setTimeout(speakNext, 500);
-        };
-
-        window.speechSynthesis.speak(warmup);
+        // Enfoque simple: iniciar directamente (sin warmup complejo)
+        // El prefijo "¡Ey ey!" suena natural como intro de DJ y absorbe el corte
+        setTimeout(speakNext, 100);
       };
 
       // Las voces pueden no estar disponibles inmediatamente
