@@ -23,7 +23,7 @@ const BIRTHDAY_GREETINGS = [
 // Promoción para enviar saluditos
 const PROMO_SALUDITOS = {
   id: 'promo-saluditos',
-  videoUrl: 'https://streamable.com/e/pf24sg',
+  videoUrl: 'https://streamable.com/e/z7wviw',
   title: '¡Envía tus Saluditos!',
   subtitle: 'Cumpleaños, Aniversarios, Dedicatorias y más',
   dj1: 'DJ Principal',
