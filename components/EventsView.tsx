@@ -223,6 +223,12 @@ const EventsView: React.FC = () => {
                     </div>
                   )}
 
+                  {event.description && (
+                    <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed">
+                      {event.description}
+                    </p>
+                  )}
+
                   {/* ACTIONS */}
                   <div className="flex gap-2 pt-2">
                     <button
@@ -293,6 +299,12 @@ const EventsView: React.FC = () => {
                   </span>
                 )}
               </div>
+              {selectedEvent.description && (
+                <p className="text-slate-300 text-sm leading-relaxed bg-white/5 p-4 rounded-xl border border-white/10">
+                  <i className="fa-solid fa-music text-[#a3cf33] mr-2"></i>
+                  {selectedEvent.description}
+                </p>
+              )}
               <button
                 onClick={() => window.open(`${WHATSAPP_URL}?text=Hola! Quiero info de: ${selectedEvent.title}`, '_blank')}
                 className="w-full py-4 bg-[#25D366] text-white font-black rounded-2xl text-sm uppercase tracking-widest flex items-center justify-center gap-2"

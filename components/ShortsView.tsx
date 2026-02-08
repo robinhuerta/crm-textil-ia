@@ -35,6 +35,23 @@ const PROMO_SALUDITOS = {
   ]
 };
 
+// 🎉 Spot del Mercado 14 de Febrero - Día del Amor y la Amistad
+const SPOT_MERCADO_14_FEBRERO = {
+  id: 'spot-mercado-14-febrero',
+  videoUrl: 'https://streamable.com/e/dsi3h1',
+  title: '🎉 Aniversario Mercado 14 de Febrero',
+  subtitle: 'Día del Amor y la Amistad - Valdiviezo',
+  date: 'Sábado 14 de Febrero 2026',
+  location: 'Mercado 14 de Febrero de Valdiviezo',
+  dj1: 'Josecito Mitma',
+  dj2: 'María Llata',
+  dialogues: [
+    { speaker: 'dj1', text: '¡Atención mi gente bonita! ¡Este sábado 14 de febrero celebramos en grande el Día del Amor y la Amistad! ¡Y lo hacemos en el Mercado 14 de Febrero de Valdiviezo!' },
+    { speaker: 'dj2', text: '¡Así es familia! Estamos de aniversario y queremos celebrarlo contigo. Habrá música, baile y mucha alegría. ¡No te lo puedes perder!' },
+    { speaker: 'dj1', text: '¡Y para que la fiesta esté de lujo, estará amenizando la potente orquesta La Nueva cinco cuarenta de Josecito Mitma y María Llata! ¡Puro sabor, pura cumbia, puro sentimiento! ¡Te esperamos!' }
+  ]
+};
+
 const ShortsView: React.FC = () => {
   const [shorts, setShorts] = useState<RadioShort[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -373,8 +390,121 @@ const ShortsView: React.FC = () => {
         </div>
       </div>
 
+      {/* 💕 SPOT MERCADO 14 DE FEBRERO - DÍA DEL AMOR Y LA AMISTAD */}
+      <div
+        key={SPOT_MERCADO_14_FEBRERO.id}
+        className="relative w-full h-full snap-start flex flex-col bg-gradient-to-br from-slate-950 via-rose-950/40 to-red-950/30 overflow-hidden"
+      >
+        {/* Fondo decorativo con corazones */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(25)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-pulse text-2xl"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDuration: `${2 + Math.random() * 3}s`,
+                animationDelay: `${Math.random() * 2}s`,
+                opacity: 0.4
+              }}
+            >
+              {['💕', '❤️', '💖', '🎵', '🎉'][i % 5]}
+            </div>
+          ))}
+          <div className="absolute top-0 left-0 w-96 h-96 bg-rose-500/20 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute bottom-0 right-0 w-80 h-80 bg-red-500/20 rounded-full blur-[100px] animate-pulse"></div>
+        </div>
 
-      {/* Publicidad Regular */}
+        {/* Contenido principal */}
+        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-start lg:justify-center h-full gap-4 lg:gap-8 p-4 lg:p-12 overflow-y-auto">
+
+          {/* Video de Streamable */}
+          <div className="relative flex-shrink-0 w-full max-w-[280px] lg:max-w-sm">
+            <div className="absolute -inset-2 lg:-inset-4 bg-gradient-to-r from-rose-500 via-red-500 to-pink-500 rounded-2xl lg:rounded-3xl blur-lg lg:blur-xl opacity-50 animate-pulse"></div>
+            <div className="relative rounded-xl lg:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 aspect-[9/16]">
+              <iframe
+                src={SPOT_MERCADO_14_FEBRERO.videoUrl}
+                className="absolute inset-0 w-full h-full"
+                frameBorder="0"
+                allow="autoplay; fullscreen"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+
+          {/* Texto de información del evento */}
+          <div className="text-center lg:text-left space-y-6 max-w-lg">
+            <div className="space-y-3">
+              <span className="bg-gradient-to-r from-rose-500 to-red-500 text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-xl inline-block animate-pulse">
+                💕 {SPOT_MERCADO_14_FEBRERO.date}
+              </span>
+              <h2 className="text-3xl lg:text-4xl font-black text-white uppercase tracking-tight leading-tight">
+                {SPOT_MERCADO_14_FEBRERO.title}
+              </h2>
+              <p className="text-rose-300 text-sm font-bold">{SPOT_MERCADO_14_FEBRERO.subtitle}</p>
+
+              {/* Ubicación */}
+              <div className="flex items-center justify-center lg:justify-start gap-2 text-rose-200 text-xs">
+                <i className="fa-solid fa-location-dot text-rose-400"></i>
+                <span>{SPOT_MERCADO_14_FEBRERO.location}</span>
+              </div>
+            </div>
+
+            {/* Diálogos con voz */}
+            <div className="space-y-4 bg-black/40 backdrop-blur-sm rounded-3xl p-5 border border-white/10">
+              {/* Botón para escuchar */}
+              <button
+                onClick={() => toggleSpeech(SPOT_MERCADO_14_FEBRERO.dialogues)}
+                className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isSpeaking
+                  ? 'bg-red-500 text-white animate-pulse hover:bg-red-600'
+                  : 'bg-gradient-to-r from-rose-500 to-red-500 text-white hover:scale-105'
+                  }`}
+              >
+                <i className={`fa-solid ${isSpeaking ? 'fa-stop' : 'fa-volume-high'} text-lg`}></i>
+                {isSpeaking ? '⏹️ Detener' : '🎙️ Escuchar Anuncio'}
+              </button>
+
+              {SPOT_MERCADO_14_FEBRERO.dialogues.map((dialogue, idx) => (
+                <div key={idx} className={`flex items-start gap-3 p-3 rounded-2xl transition-all duration-500 ${activeDialogue === idx ? (dialogue.speaker === 'dj1' ? 'bg-rose-500/20 ring-2 ring-rose-500' : 'bg-pink-500/20 ring-2 ring-pink-500') + ' scale-[1.02]' : ''}`}>
+                  <div className={`w-10 h-10 ${dialogue.speaker === 'dj1' ? 'bg-rose-500' : 'bg-pink-500'} rounded-full flex items-center justify-center flex-shrink-0 ${activeDialogue === idx ? 'animate-pulse' : ''}`}>
+                    <i className={`fa-solid ${dialogue.speaker === 'dj1' ? 'fa-microphone' : 'fa-headphones'} text-white text-sm`}></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className={`${dialogue.speaker === 'dj1' ? 'text-rose-400' : 'text-pink-400'} text-[10px] font-black uppercase tracking-wider mb-1`}>
+                      {dialogue.speaker === 'dj1' ? SPOT_MERCADO_14_FEBRERO.dj1 : SPOT_MERCADO_14_FEBRERO.dj2}
+                    </p>
+                    <p className="text-white text-sm leading-relaxed">{dialogue.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Call to action */}
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-slate-400 text-[9px] font-bold uppercase tracking-widest">
+              <span className="animate-bounce">💖</span>
+              <span>Orquesta La Nueva 5:40 - ¡Te esperamos!</span>
+              <span className="animate-bounce">🎵</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Badge */}
+        <div className="absolute top-6 left-6 z-20">
+          <span className="bg-gradient-to-r from-rose-500 to-red-500 text-white px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-2xl inline-flex items-center gap-2">
+            <i className="fa-solid fa-heart"></i>
+            Evento Especial
+          </span>
+        </div>
+
+        {/* Indicador de scroll */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 animate-bounce">
+          <span className="text-slate-500 text-[8px] font-bold uppercase tracking-widest">Desliza para más</span>
+          <i className="fa-solid fa-chevron-down text-rose-400"></i>
+        </div>
+      </div>
+
+
       {shorts.length === 0 && !showBirthdays ? (
         <div className="h-full flex items-center justify-center text-slate-700 flex-col gap-4">
           <i className="fa-solid fa-film text-4xl"></i>

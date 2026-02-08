@@ -30,6 +30,14 @@ export const DEFAULT_JINGLES: string[] = [
 
 export const MOCK_EVENTS: RadioEvent[] = [
     {
+        id: '6',
+        title: '🎉 Aniversario Mercado 14 de Febrero - Día del Amor y la Amistad',
+        date: '2026-02-14T18:00:00',
+        location: 'Mercado 14 de Febrero de Valdiviezo',
+        imageUrl: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=800',
+        description: '¡Celebramos el Día del Amor y la Amistad con todo! Aniversario del Mercado 14 de Febrero de Valdiviezo, amenizado por la potente orquesta La Nueva 5:40 de Josecito Mitma y María Llata. ¡No te lo pierdas!'
+    },
+    {
         id: '1',
         title: "Especial: Historias con 'El Popular Ceviche'",
         date: '2026-02-05T18:00:00',

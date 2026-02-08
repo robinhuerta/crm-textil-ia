@@ -17,6 +17,7 @@ export interface RadioEvent {
   date: string;
   location: string;
   imageUrl: string;
+  description?: string;
 }
 
 export interface YouTubeVideo {
