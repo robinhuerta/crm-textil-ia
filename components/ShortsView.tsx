@@ -122,8 +122,9 @@ const ShortsView: React.FC = () => {
           if (currentIndex < dialogues.length) {
             setActiveDialogue(currentIndex);
             const dialogue = dialogues[currentIndex];
-            // Agregar caracteres de "sacrificio" al inicio para absorber el corte del TTS
-            const textWithPause = '... ... ' + dialogue.text;
+            // Agregar mucho texto de "sacrificio" al inicio para absorber el corte del TTS
+            // El TTS en móvil corta hasta 20 caracteres al inicio
+            const textWithPause = 'mmm, mmm, mmm, ' + dialogue.text;
             const utterance = new SpeechSynthesisUtterance(textWithPause);
 
             // Obtener voz latinoamericana
@@ -173,7 +174,8 @@ const ShortsView: React.FC = () => {
         // Esperar a que el warmup TERMINE antes de hablar el texto real
         warmup.onend = () => {
           // El motor ya está 100% caliente, ahora sí hablar
-          setTimeout(speakNext, 100);
+          // Delay largo para asegurar que esté listo
+          setTimeout(speakNext, 500);
         };
 
         warmup.onerror = () => {
