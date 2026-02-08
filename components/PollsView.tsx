@@ -22,10 +22,6 @@ const PollsView: React.FC = () => {
    const [poll, setPoll] = useState<Poll | null>(null);
    const [hasVoted, setHasVoted] = useState(false);
    const [timeRemaining, setTimeRemaining] = useState({ hours: 0, minutes: 0, seconds: 0, expired: false });
-   const [showAdminPanel, setShowAdminPanel] = useState(false);
-   const [newQuestion, setNewQuestion] = useState('');
-   const [newOptions, setNewOptions] = useState(['', '', '']);
-   const [newDuration, setNewDuration] = useState(12);
    const [message, setMessage] = useState('');
    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
@@ -200,46 +196,6 @@ const PollsView: React.FC = () => {
       setTimeout(() => setMessage(''), 3000);
    };
 
-   // Create new poll
-   const handleCreatePoll = () => {
-      const question = newQuestion.trim();
-      const validOptions = newOptions.filter(o => o.trim());
-
-      if (!question) {
-         setMessage('❌ Escribe una pregunta');
-         return;
-      }
-
-      if (validOptions.length < 2) {
-         setMessage('❌ Necesitas al menos 2 opciones');
-         return;
-      }
-
-      const endsAt = new Date();
-      endsAt.setHours(endsAt.getHours() + newDuration);
-
-      const votes: Record<string, number> = {};
-      validOptions.forEach(opt => votes[opt.trim()] = 0);
-
-      const newPoll: Poll = {
-         id: Date.now().toString(),
-         question,
-         options: validOptions.map(o => o.trim()),
-         votes,
-         endsAt: endsAt.toISOString(),
-         createdAt: new Date().toISOString()
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newPoll));
-      setPoll(newPoll);
-      setHasVoted(false);
-      setShowAdminPanel(false);
-      setNewQuestion('');
-      setNewOptions(['', '', '']);
-      setMessage('✅ ¡Encuesta creada exitosamente!');
-      setTimeout(() => setMessage(''), 3000);
-   };
-
    // Calculate totals
    const totalVotes = poll ? Object.values(poll.votes).reduce((sum, v) => sum + v, 0) : 0;
    const maxVotes = poll ? Math.max(...Object.values(poll.votes), 0) : 0;
@@ -387,75 +343,7 @@ const PollsView: React.FC = () => {
             </div>
          )}
 
-         {/* ADMIN PANEL */}
-         <div className="text-center">
-            <button
-               onClick={() => setShowAdminPanel(!showAdminPanel)}
-               className="text-xs text-slate-600 hover:text-white transition-colors px-4 py-2"
-            >
-               ⚙️ Panel de Administrador
-            </button>
-         </div>
 
-         {showAdminPanel && (
-            <div className="glass-dark p-8 rounded-3xl border border-white/10 space-y-6">
-               <h4 className="text-xl font-black text-white">Crear Nueva Encuesta</h4>
-
-               <div>
-                  <label className="text-xs text-slate-400 mb-2 block">Pregunta:</label>
-                  <input
-                     type="text"
-                     value={newQuestion}
-                     onChange={(e) => setNewQuestion(e.target.value)}
-                     placeholder="¿Qué género quieres escuchar?"
-                     className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600"
-                  />
-               </div>
-
-               <div>
-                  <label className="text-xs text-slate-400 mb-2 block">Opciones:</label>
-                  {newOptions.map((opt, idx) => (
-                     <input
-                        key={idx}
-                        type="text"
-                        value={opt}
-                        onChange={(e) => {
-                           const updated = [...newOptions];
-                           updated[idx] = e.target.value;
-                           setNewOptions(updated);
-                        }}
-                        placeholder={`Opción ${idx + 1}`}
-                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 mb-2"
-                     />
-                  ))}
-                  <button
-                     onClick={() => setNewOptions([...newOptions, ''])}
-                     className="text-xs text-[#a3cf33] hover:underline"
-                  >
-                     + Agregar opción
-                  </button>
-               </div>
-
-               <div>
-                  <label className="text-xs text-slate-400 mb-2 block">Duración (horas):</label>
-                  <input
-                     type="number"
-                     value={newDuration}
-                     onChange={(e) => setNewDuration(Number(e.target.value))}
-                     min={1}
-                     max={48}
-                     className="w-32 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white"
-                  />
-               </div>
-
-               <button
-                  onClick={handleCreatePoll}
-                  className="w-full bg-[#a3cf33] text-black font-black py-4 rounded-xl hover:bg-[#b5e043] transition-colors active:scale-95"
-               >
-                  🚀 CREAR ENCUESTA
-               </button>
-            </div>
-         )}
 
          <div className="pt-10 flex flex-col items-center gap-4">
             <div className="w-20 h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
