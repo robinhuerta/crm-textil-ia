@@ -68,42 +68,92 @@ const ShortsView: React.FC = () => {
     setShorts(saved ? JSON.parse(saved) : MOCK_SHORTS);
   };
 
-  // Función para leer los diálogos
+  // Función para obtener la mejor voz en español latinoamericano (más cercana al acento peruano)
+  const getLatinVoice = (preferFemale: boolean = false): SpeechSynthesisVoice | null => {
+    const voices = window.speechSynthesis.getVoices();
+
+    // Prioridad de voces latinoamericanas (más cercanas al acento peruano)
+    const latinLocales = ['es-MX', 'es-PE', 'es-CO', 'es-AR', 'es-CL', 'es-419', 'es-US'];
+
+    // Buscar voz latinoamericana
+    for (const locale of latinLocales) {
+      const voice = voices.find(v =>
+        v.lang === locale &&
+        (preferFemale ? v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('paulina') || v.name.toLowerCase().includes('maria') : true)
+      );
+      if (voice) return voice;
+    }
+
+    // Si no hay latinoamericana, buscar cualquier español
+    const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+    if (spanishVoice) return spanishVoice;
+
+    return null;
+  };
+
+  // Función para leer los diálogos con voces estilo locutor peruano
   const speakDialogues = (dialogues: { speaker: string; text: string }[]) => {
     if ('speechSynthesis' in window) {
       // Cancelar cualquier lectura anterior
       window.speechSynthesis.cancel();
 
-      let currentIndex = 0;
+      // Esperar a que las voces estén disponibles
+      const startSpeaking = () => {
+        let currentIndex = 0;
 
-      const speakNext = () => {
-        if (currentIndex < dialogues.length) {
-          setActiveDialogue(currentIndex);
-          const utterance = new SpeechSynthesisUtterance(dialogues[currentIndex].text);
-          utterance.lang = 'es-ES';
-          // Voz más vibrante estilo locutor de radio
-          utterance.rate = 1.35; // ¡Más rápido y eufórico!
-          utterance.volume = 1.0; // Volumen máximo
-          // DJ Principal: voz potente | DJ Asistente: voz alegre y animada
-          utterance.pitch = dialogues[currentIndex].speaker === 'dj1' ? 1.0 : 1.4;
+        const speakNext = () => {
+          if (currentIndex < dialogues.length) {
+            setActiveDialogue(currentIndex);
+            const dialogue = dialogues[currentIndex];
+            const utterance = new SpeechSynthesisUtterance(dialogue.text);
 
-          utterance.onend = () => {
-            currentIndex++;
-            if (currentIndex < dialogues.length) {
-              setTimeout(speakNext, 500); // Pausa entre diálogos
+            // Obtener voz latinoamericana
+            const voice = getLatinVoice(dialogue.speaker === 'dj2');
+            if (voice) {
+              utterance.voice = voice;
+              utterance.lang = voice.lang;
             } else {
-              setIsSpeaking(false);
-              setActiveDialogue(-1);
+              utterance.lang = 'es-MX'; // Fallback a español mexicano
             }
-          };
 
-          speechRef.current = utterance;
-          window.speechSynthesis.speak(utterance);
-        }
+            // Configuración estilo locutor de radio peruano
+            if (dialogue.speaker === 'dj1') {
+              // DJ Principal: voz potente, ritmo dinámico de locutor
+              utterance.rate = 1.25;
+              utterance.pitch = 0.95; // Voz un poco más grave
+              utterance.volume = 1.0;
+            } else {
+              // DJ Asistente: voz alegre y animada
+              utterance.rate = 1.30;
+              utterance.pitch = 1.15; // Voz más aguda y alegre
+              utterance.volume = 1.0;
+            }
+
+            utterance.onend = () => {
+              currentIndex++;
+              if (currentIndex < dialogues.length) {
+                setTimeout(speakNext, 600); // Pausa entre diálogos
+              } else {
+                setIsSpeaking(false);
+                setActiveDialogue(-1);
+              }
+            };
+
+            speechRef.current = utterance;
+            window.speechSynthesis.speak(utterance);
+          }
+        };
+
+        setIsSpeaking(true);
+        speakNext();
       };
 
-      setIsSpeaking(true);
-      speakNext();
+      // Las voces pueden no estar disponibles inmediatamente
+      if (window.speechSynthesis.getVoices().length > 0) {
+        startSpeaking();
+      } else {
+        window.speechSynthesis.onvoiceschanged = startSpeaking;
+      }
     }
   };
 
