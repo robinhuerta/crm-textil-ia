@@ -68,27 +68,44 @@ const ShortsView: React.FC = () => {
     setShorts(saved ? JSON.parse(saved) : MOCK_SHORTS);
   };
 
-  // Función para obtener la mejor voz en español latinoamericano (más cercana al acento peruano)
+  // Función para obtener voz masculina o femenina en español latinoamericano
   const getLatinVoice = (preferFemale: boolean = false): SpeechSynthesisVoice | null => {
     const voices = window.speechSynthesis.getVoices();
 
     // Prioridad de voces latinoamericanas (más cercanas al acento peruano)
-    const latinLocales = ['es-MX', 'es-PE', 'es-CO', 'es-AR', 'es-CL', 'es-419', 'es-US'];
+    const latinLocales = ['es-MX', 'es-PE', 'es-CO', 'es-AR', 'es-CL', 'es-419', 'es-US', 'es-ES'];
 
-    // Buscar voz latinoamericana
+    // Nombres comunes de voces femeninas
+    const femaleNames = ['female', 'paulina', 'maria', 'mónica', 'monica', 'elena', 'laura', 'carmen', 'rosa', 'lucia', 'francisca', 'angelica', 'sabina', 'helena', 'penelope'];
+    // Nombres comunes de voces masculinas
+    const maleNames = ['male', 'jorge', 'juan', 'carlos', 'diego', 'pablo', 'miguel', 'andres', 'antonio', 'pedro', 'enrique', 'rodriguez'];
+
+    // Buscar voz del género correcto en idioma latinoamericano
     for (const locale of latinLocales) {
-      const voice = voices.find(v =>
-        v.lang === locale &&
-        (preferFemale ? v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('paulina') || v.name.toLowerCase().includes('maria') : true)
-      );
-      if (voice) return voice;
+      const matchingVoices = voices.filter(v => v.lang === locale);
+
+      for (const voice of matchingVoices) {
+        const nameLower = voice.name.toLowerCase();
+        if (preferFemale) {
+          // Buscar voz femenina
+          if (femaleNames.some(fn => nameLower.includes(fn))) return voice;
+        } else {
+          // Buscar voz masculina
+          if (maleNames.some(mn => nameLower.includes(mn))) return voice;
+        }
+      }
     }
 
-    // Si no hay latinoamericana, buscar cualquier español
-    const spanishVoice = voices.find(v => v.lang.startsWith('es'));
-    if (spanishVoice) return spanishVoice;
+    // Si no encontró del género específico, buscar cualquier español del género opuesto
+    const allSpanish = voices.filter(v => v.lang.startsWith('es'));
+    for (const voice of allSpanish) {
+      const nameLower = voice.name.toLowerCase();
+      if (preferFemale && femaleNames.some(fn => nameLower.includes(fn))) return voice;
+      if (!preferFemale && maleNames.some(mn => nameLower.includes(mn))) return voice;
+    }
 
-    return null;
+    // Fallback: devolver cualquier voz en español
+    return allSpanish.length > 0 ? allSpanish[preferFemale ? 1 : 0] || allSpanish[0] : null;
   };
 
   // Función para leer los diálogos con voces estilo locutor peruano
