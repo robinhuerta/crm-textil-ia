@@ -171,7 +171,8 @@ const ShortsView: React.FC = () => {
 
         // Esperar a que el warmup TERMINE antes de hablar el texto real
         warmup.onend = () => {
-          // El motor ya está 100% caliente, ahora sí hablar
+          // IMPORTANTE: Cancelar todo antes de empezar el texto real (evitar crossfade)
+          window.speechSynthesis.cancel();
           // Delay de 1 segundo para asegurar que esté completamente listo
           setTimeout(speakNext, 1000);
         };
