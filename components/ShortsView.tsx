@@ -122,10 +122,8 @@ const ShortsView: React.FC = () => {
           if (currentIndex < dialogues.length) {
             setActiveDialogue(currentIndex);
             const dialogue = dialogues[currentIndex];
-            // Agregar mucho texto de "sacrificio" al inicio para absorber el corte del TTS
-            // El TTS en móvil corta hasta 20 caracteres al inicio
-            const textWithPause = 'mmm, mmm, mmm, ' + dialogue.text;
-            const utterance = new SpeechSynthesisUtterance(textWithPause);
+            // Ya no necesitamos texto de sacrificio porque el warmup funciona
+            const utterance = new SpeechSynthesisUtterance(dialogue.text);
 
             // Obtener voz latinoamericana
             const voice = getLatinVoice(dialogue.speaker === 'dj2');
