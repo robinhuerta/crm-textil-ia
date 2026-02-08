@@ -9,7 +9,6 @@ import ChatAssistant from './components/ChatAssistant';
 import SettingsView from './components/SettingsView';
 import MusicLibraryView from './components/MusicLibraryView';
 import PollsView from './components/PollsView';
-import SpotifyView from './components/SpotifyView';
 import PlayerBar from './components/PlayerBar';
 import { Logo } from './components/Logo';
 import { GoogleGenAI, Modality } from "@google/genai";
@@ -202,7 +201,6 @@ const App: React.FC = () => {
         </div>
         <nav className="flex-1 space-y-2">
           <NavItem icon="fa-home" label="Radio en Vivo" color="#a3cf33" active={activeTab === NavTab.HOME} onClick={() => setActiveTab(NavTab.HOME)} />
-          <NavItem icon="fa-spotify" label="Spotify" color="#1DB954" active={activeTab === NavTab.SPOTIFY} onClick={() => setActiveTab(NavTab.SPOTIFY)} />
           <NavItem icon="fa-bolt" label="Publicidad" color="#FFD700" active={activeTab === NavTab.SHORTS} onClick={() => setActiveTab(NavTab.SHORTS)} />
           <NavItem icon="fa-music" label="Música MP3" color="#E0E0E0" active={activeTab === NavTab.MUSIC} onClick={() => setActiveTab(NavTab.MUSIC)} />
           <NavItem icon="fa-star" label="Votaciones" color="#FF9800" active={activeTab === NavTab.POLLS} onClick={() => setActiveTab(NavTab.POLLS)} />
@@ -227,7 +225,6 @@ const App: React.FC = () => {
           )}
 
           {activeTab === NavTab.HOME && <HomeView onPlayToggle={() => setIsPlaying(!isPlaying)} isPlaying={isPlaying} />}
-          {activeTab === NavTab.SPOTIFY && <SpotifyView />}
           {activeTab === NavTab.VIDEOS && <VideoView />}
           {activeTab === NavTab.SHORTS && <ShortsView />}
           {activeTab === NavTab.EVENTS && <EventsView />}
@@ -258,7 +255,6 @@ const App: React.FC = () => {
 
         {/* Derecha del centro */}
         <div className="flex items-center gap-1">
-          <MobileIcon icon="fa-spotify" color="#1DB954" active={activeTab === NavTab.SPOTIFY} onClick={() => setActiveTab(NavTab.SPOTIFY)} />
           <MobileIcon icon="fa-calendar" color="#E040FB" active={activeTab === NavTab.EVENTS} onClick={() => setActiveTab(NavTab.EVENTS)} hasIndicator={hasUpcomingEvents} />
         </div>
       </nav>
