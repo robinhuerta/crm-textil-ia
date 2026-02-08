@@ -165,17 +165,23 @@ const ShortsView: React.FC = () => {
 
         setIsSpeaking(true);
 
-        // Warmup: hacer que el motor de voz se prepare con un texto real pero silencioso
-        const warmup = new SpeechSynthesisUtterance('...');
-        warmup.volume = 0;
-        warmup.rate = 2; // Muy rápido para que termine rápido
-        window.speechSynthesis.speak(warmup);
+        // NUEVO ENFOQUE: Warmup que TERMINA completamente antes del texto real
+        const warmup = new SpeechSynthesisUtterance('Hola');
+        warmup.volume = 0.01; // Casi silencioso pero no cero
+        warmup.rate = 3; // Muy rápido
 
-        // Delay más largo para que el motor de voz esté completamente listo
-        setTimeout(() => {
-          window.speechSynthesis.cancel(); // Cancelar el warmup
-          setTimeout(speakNext, 300); // Delay adicional antes de iniciar el texto real
-        }, 400);
+        // Esperar a que el warmup TERMINE antes de hablar el texto real
+        warmup.onend = () => {
+          // El motor ya está 100% caliente, ahora sí hablar
+          setTimeout(speakNext, 100);
+        };
+
+        warmup.onerror = () => {
+          // Si hay error, intentar de todos modos
+          setTimeout(speakNext, 500);
+        };
+
+        window.speechSynthesis.speak(warmup);
       };
 
       // Las voces pueden no estar disponibles inmediatamente
