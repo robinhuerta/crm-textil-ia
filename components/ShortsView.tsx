@@ -164,16 +164,16 @@ const ShortsView: React.FC = () => {
 
         setIsSpeaking(true);
 
-        // NUEVO ENFOQUE: Warmup que TERMINA completamente antes del texto real
-        const warmup = new SpeechSynthesisUtterance('Hola');
-        warmup.volume = 0.01; // Casi silencioso pero no cero
-        warmup.rate = 3; // Muy rápido
+        // WARMUP LARGO: que TERMINA completamente antes del texto real
+        const warmup = new SpeechSynthesisUtterance('uno, dos, tres, cuatro, cinco');
+        warmup.volume = 0.01; // Casi silencioso
+        warmup.rate = 2; // Rápido
 
         // Esperar a que el warmup TERMINE antes de hablar el texto real
         warmup.onend = () => {
           // El motor ya está 100% caliente, ahora sí hablar
-          // Delay largo para asegurar que esté listo
-          setTimeout(speakNext, 500);
+          // Delay de 1 segundo para asegurar que esté completamente listo
+          setTimeout(speakNext, 1000);
         };
 
         warmup.onerror = () => {
