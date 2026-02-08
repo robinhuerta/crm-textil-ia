@@ -162,7 +162,17 @@ const ShortsView: React.FC = () => {
         };
 
         setIsSpeaking(true);
-        speakNext();
+
+        // Warmup: hacer que el motor de voz se prepare con un texto vacío silencioso
+        const warmup = new SpeechSynthesisUtterance('');
+        warmup.volume = 0;
+        window.speechSynthesis.speak(warmup);
+
+        // Pequeño delay para que el motor de voz esté listo
+        setTimeout(() => {
+          window.speechSynthesis.cancel(); // Cancelar el warmup
+          setTimeout(speakNext, 100); // Iniciar el texto real
+        }, 200);
       };
 
       // Las voces pueden no estar disponibles inmediatamente
