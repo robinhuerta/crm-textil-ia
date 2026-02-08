@@ -116,23 +116,23 @@ const ShortsView: React.FC = () => {
               utterance.lang = 'es-MX'; // Fallback a español mexicano
             }
 
-            // Configuración estilo locutor de radio peruano
+            // Configuración estilo locutor de radio peruano CON EMOCIÓN
             if (dialogue.speaker === 'dj1') {
-              // DJ Principal: voz potente, ritmo dinámico de locutor
-              utterance.rate = 1.25;
-              utterance.pitch = 0.95; // Voz un poco más grave
+              // DJ Principal: voz POTENTE y ENÉRGICA
+              utterance.rate = 1.45; // ¡Más rápido y eufórico!
+              utterance.pitch = 1.1; // Más expresivo
               utterance.volume = 1.0;
             } else {
-              // DJ Asistente: voz alegre y animada
-              utterance.rate = 1.30;
-              utterance.pitch = 1.15; // Voz más aguda y alegre
+              // DJ Asistente: voz MUY alegre y animada
+              utterance.rate = 1.50; // ¡Super animada!
+              utterance.pitch = 1.35; // Voz más aguda y festiva
               utterance.volume = 1.0;
             }
 
             utterance.onend = () => {
               currentIndex++;
               if (currentIndex < dialogues.length) {
-                setTimeout(speakNext, 600); // Pausa entre diálogos
+                setTimeout(speakNext, 400); // Pausa corta ¡más dinámico!
               } else {
                 setIsSpeaking(false);
                 setActiveDialogue(-1);
