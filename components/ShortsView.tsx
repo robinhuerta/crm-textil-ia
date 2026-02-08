@@ -122,7 +122,9 @@ const ShortsView: React.FC = () => {
           if (currentIndex < dialogues.length) {
             setActiveDialogue(currentIndex);
             const dialogue = dialogues[currentIndex];
-            const utterance = new SpeechSynthesisUtterance(dialogue.text);
+            // Agregar una pequeña pausa al inicio del texto para evitar que se corte
+            const textWithPause = ', ' + dialogue.text;
+            const utterance = new SpeechSynthesisUtterance(textWithPause);
 
             // Obtener voz latinoamericana
             const voice = getLatinVoice(dialogue.speaker === 'dj2');
@@ -163,16 +165,17 @@ const ShortsView: React.FC = () => {
 
         setIsSpeaking(true);
 
-        // Warmup: hacer que el motor de voz se prepare con un texto vacío silencioso
-        const warmup = new SpeechSynthesisUtterance('');
+        // Warmup: hacer que el motor de voz se prepare con un texto real pero silencioso
+        const warmup = new SpeechSynthesisUtterance('...');
         warmup.volume = 0;
+        warmup.rate = 2; // Muy rápido para que termine rápido
         window.speechSynthesis.speak(warmup);
 
-        // Pequeño delay para que el motor de voz esté listo
+        // Delay más largo para que el motor de voz esté completamente listo
         setTimeout(() => {
           window.speechSynthesis.cancel(); // Cancelar el warmup
-          setTimeout(speakNext, 100); // Iniciar el texto real
-        }, 200);
+          setTimeout(speakNext, 300); // Delay adicional antes de iniciar el texto real
+        }, 400);
       };
 
       // Las voces pueden no estar disponibles inmediatamente
