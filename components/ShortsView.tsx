@@ -122,8 +122,8 @@ const ShortsView: React.FC = () => {
           if (currentIndex < dialogues.length) {
             setActiveDialogue(currentIndex);
             const dialogue = dialogues[currentIndex];
-            // Agregar una pequeña pausa al inicio del texto para evitar que se corte
-            const textWithPause = ', ' + dialogue.text;
+            // Agregar caracteres de "sacrificio" al inicio para absorber el corte del TTS
+            const textWithPause = '... ... ' + dialogue.text;
             const utterance = new SpeechSynthesisUtterance(textWithPause);
 
             // Obtener voz latinoamericana
