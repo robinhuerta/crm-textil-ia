@@ -1,6 +1,6 @@
 // 🚀 Service Worker Optimizado para La Nueva 5:40
 // Versión: Incrementa este número cuando hagas cambios importantes
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 const CACHE_NAME = `radio-540-v${VERSION}`;
 const CACHE_ASSETS = `radio-540-assets-v${VERSION}`;
 const CACHE_IMAGES = `radio-540-images-v${VERSION}`;
