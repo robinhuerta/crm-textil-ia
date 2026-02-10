@@ -1,18 +1,109 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavTab } from '../types';
 
 const SettingsView: React.FC = () => {
+    const [isUnlocked, setIsUnlocked] = useState(false);
+    const [pin, setPin] = useState('');
+    const [error, setError] = useState('');
+
+    const ADMIN_PIN = '5540'; // PIN: 5540
+
+    const handleUnlock = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (pin === ADMIN_PIN) {
+            setIsUnlocked(true);
+            setError('');
+            localStorage.setItem('settings_unlocked', 'true');
+        } else {
+            setError('PIN incorrecto');
+            setPin('');
+        }
+    };
+
     const navigateToGreetings = () => {
         window.dispatchEvent(new CustomEvent('navigate_to_tab', { detail: NavTab.GREETINGS }));
     };
 
+    // Check if already unlocked in this session
+    useEffect(() => {
+        const unlocked = localStorage.getItem('settings_unlocked');
+        if (unlocked === 'true') {
+            setIsUnlocked(true);
+        }
+    }, []);
+
+    // PIN SCREEN
+    if (!isUnlocked) {
+        return (
+            <div className="min-h-screen flex items-center justify-center px-4 pb-32">
+                <div className="w-full max-w-md">
+                    <div className="glass-dark rounded-3xl p-8 border border-white/10 space-y-6">
+                        {/* Lock Icon */}
+                        <div className="flex justify-center">
+                            <div className="w-20 h-20 bg-gradient-to-br from-[#a3cf33] to-yellow-400 rounded-full flex items-center justify-center">
+                                <i className="fa-solid fa-lock text-4xl text-slate-900"></i>
+                            </div>
+                        </div>
+
+                        {/* Title */}
+                        <div className="text-center space-y-2">
+                            <h2 className="text-white font-black text-2xl uppercase">
+                                Panel Admin
+                            </h2>
+                            <p className="text-slate-400 text-sm">
+                                Ingresa el PIN de 4 dígitos
+                            </p>
+                        </div>
+
+                        {/* PIN Form */}
+                        <form onSubmit={handleUnlock} className="space-y-4">
+                            <input
+                                type="password"
+                                inputMode="numeric"
+                                maxLength={4}
+                                value={pin}
+                                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                                placeholder="••••"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center text-white text-3xl font-bold tracking-[0.5em] focus:outline-none focus:border-[#a3cf33] transition-colors"
+                                autoFocus
+                            />
+
+                            {error && (
+                                <div className="bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3 text-center">
+                                    <p className="text-red-400 text-sm font-bold">
+                                        <i className="fa-solid fa-circle-exclamation mr-2"></i>
+                                        {error}
+                                    </p>
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={pin.length !== 4}
+                                className="w-full bg-gradient-to-r from-[#a3cf33] to-yellow-400 text-slate-900 font-black py-4 rounded-2xl uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                            >
+                                Desbloquear
+                            </button>
+                        </form>
+
+                        {/* Hint */}
+                        <p className="text-center text-slate-600 text-xs">
+                            Contacta al administrador si olvidaste el PIN
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ADMIN PANEL (unlocked)
     return (
         <div className="space-y-8 animate-fadeIn pb-32 max-w-4xl mx-auto px-4">
             {/* HEADER */}
             <header className="text-center space-y-4">
                 <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-full text-slate-400 text-xs font-black uppercase tracking-[0.3em] backdrop-blur-xl mb-4">
-                    <i className="fa-solid fa-gear text-lg"></i>
-                    Panel de Control
+                    <i className="fa-solid fa-unlock text-lg text-[#a3cf33]"></i>
+                    Panel de Control Desbloqueado
                 </div>
 
                 <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter">
@@ -117,6 +208,21 @@ const SettingsView: React.FC = () => {
                         <p className="text-white text-sm font-black mt-1">Optimizado</p>
                     </div>
                 </div>
+            </div>
+
+            {/* Logout Button */}
+            <div className="flex justify-center">
+                <button
+                    onClick={() => {
+                        localStorage.removeItem('settings_unlocked');
+                        setIsUnlocked(false);
+                        setPin('');
+                    }}
+                    className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-slate-400 hover:text-white text-sm font-bold uppercase tracking-widest transition-all"
+                >
+                    <i className="fa-solid fa-right-from-bracket mr-2"></i>
+                    Cerrar Sesión
+                </button>
             </div>
         </div>
     );
