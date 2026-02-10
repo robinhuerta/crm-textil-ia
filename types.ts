@@ -8,7 +8,8 @@ export enum NavTab {
   SETTINGS = 'settings',
   MUSIC = 'music',
   POLLS = 'polls',
-  SPOTIFY = 'spotify'
+  SPOTIFY = 'spotify',
+  GREETINGS = 'greetings'
 }
 
 export interface RadioEvent {
@@ -52,4 +53,13 @@ export interface RadioPoll {
   question: string;
   totalVotes: number;
   options: RadioPollOption[];
+}
+
+export interface LiveGreeting {
+  id: string;
+  from: string;      // De parte de
+  to: string;        // Para quién
+  message?: string;  // Mensaje opcional
+  status: 'pending' | 'reading' | 'completed' | 'rejected';
+  timestamp: string;
 }

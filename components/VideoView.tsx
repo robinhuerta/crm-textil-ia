@@ -12,6 +12,14 @@ const VideoView: React.FC = () => {
     const list = saved ? JSON.parse(saved) : MOCK_VIDEOS;
     setVideos(list);
     if (list.length > 0) setSelected(list[0]);
+
+    // Pausar radio al entrar a la vista de videos
+    window.dispatchEvent(new CustomEvent('radio_playback_control', { detail: { action: 'pause' } }));
+
+    // Reanudar radio al salir de la vista
+    return () => {
+      window.dispatchEvent(new CustomEvent('radio_playback_control', { detail: { action: 'play' } }));
+    };
   }, []);
 
   return (

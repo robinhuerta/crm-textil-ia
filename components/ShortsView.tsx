@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RadioShort } from '../types';
 import { MOCK_SHORTS } from '../constants';
+import { generateGeminiSpeech, decodeGeminiAudio, playGeminiAudio } from '../services/geminiTTSService';
 
 // Datos de cumpleañeros
 const BIRTHDAY_GREETINGS = [
@@ -63,6 +64,12 @@ const ShortsView: React.FC = () => {
   const [activeDialogue, setActiveDialogue] = useState(-1);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
+  // Estados para Gemini AI Voice (más profesional)
+  const [isGeminiSpeaking, setIsGeminiSpeaking] = useState(false);
+  const [isGeminiThinking, setIsGeminiThinking] = useState(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
   const loadShorts = () => {
     const saved = localStorage.getItem('radio_shorts');
     setShorts(saved ? JSON.parse(saved) : MOCK_SHORTS);
@@ -122,9 +129,7 @@ const ShortsView: React.FC = () => {
           if (currentIndex < dialogues.length) {
             setActiveDialogue(currentIndex);
             const dialogue = dialogues[currentIndex];
-            // Agregar intro natural de DJ que suena intencional y absorbe el corte del TTS
-            const djIntro = '¡Ey ey ey! ';
-            const utterance = new SpeechSynthesisUtterance(djIntro + dialogue.text);
+            const utterance = new SpeechSynthesisUtterance(dialogue.text);
 
             // Obtener voz latinoamericana
             const voice = getLatinVoice(dialogue.speaker === 'dj2');
@@ -193,6 +198,86 @@ const ShortsView: React.FC = () => {
     }
   };
 
+  // Nueva función: Generar y reproducir anuncios con voz AI de Gemini
+  const speakWithGemini = async (dialogues: { speaker: string; text: string }[]) => {
+    if (isGeminiSpeaking) {
+      stopGeminiSpeaking();
+      return;
+    }
+
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      await audioCtxRef.current.resume();
+    }
+
+    setIsGeminiThinking(true);
+
+    // Combinar todos los diálogos en un solo texto
+    const combinedText = dialogues.map(d => d.text).join(' ... ');
+
+    try {
+      const base64Audio = await generateGeminiSpeech(combinedText, 'Kore');
+
+      if (base64Audio && audioCtxRef.current) {
+        setIsGeminiThinking(false);
+        setIsGeminiSpeaking(true);
+
+        const audioBuffer = await decodeGeminiAudio(base64Audio, audioCtxRef.current);
+        if (audioBuffer) {
+          // Simular progreso de diálogos basado en duración del audio
+          const totalDuration = audioBuffer.duration * 1000; // en ms
+          const durationPerDialogue = totalDuration / dialogues.length;
+
+          let currentDialogue = 0;
+          const progressInterval = setInterval(() => {
+            if (currentDialogue < dialogues.length) {
+              setActiveDialogue(currentDialogue);
+              currentDialogue++;
+            } else {
+              clearInterval(progressInterval);
+            }
+          }, durationPerDialogue);
+
+          const source = playGeminiAudio(
+            audioBuffer,
+            audioCtxRef.current,
+            () => setActiveDialogue(0),
+            () => {
+              clearInterval(progressInterval);
+              setIsGeminiSpeaking(false);
+              setActiveDialogue(-1);
+            }
+          );
+          audioSourceRef.current = source;
+        } else {
+          setIsGeminiThinking(false);
+          setIsGeminiSpeaking(false);
+        }
+      } else {
+        // Sin API key o error
+        setIsGeminiThinking(false);
+        alert('⚠️ Necesitas configurar la API key de Gemini para usar la voz AI.');
+      }
+    } catch (error) {
+      console.error('Error generando voz:', error);
+      setIsGeminiThinking(false);
+      setIsGeminiSpeaking(false);
+    }
+  };
+
+  const stopGeminiSpeaking = () => {
+    if (audioSourceRef.current) {
+      audioSourceRef.current.stop();
+      audioSourceRef.current = null;
+    }
+    setIsGeminiSpeaking(false);
+    setIsGeminiThinking(false);
+    setActiveDialogue(-1);
+    window.dispatchEvent(new CustomEvent('radio_volume_change', { detail: { level: 0.8 } }));
+  };
+
   useEffect(() => {
     loadShorts();
     window.addEventListener('radio_content_updated', loadShorts);
@@ -205,6 +290,7 @@ const ShortsView: React.FC = () => {
     return () => {
       window.removeEventListener('radio_content_updated', loadShorts);
       window.speechSynthesis.cancel(); // Detener voz al salir
+      stopGeminiSpeaking(); // Detener Gemini AI voice
       if (wasPlayingRef.current) {
         window.dispatchEvent(new CustomEvent('radio_playback_control', { detail: { action: 'play' } }));
       }
@@ -281,16 +367,30 @@ const ShortsView: React.FC = () => {
 
               {/* Diálogo de locutores */}
               <div className="space-y-4 bg-black/40 backdrop-blur-sm rounded-3xl p-5 border border-white/10">
-                {/* Botón para escuchar */}
+                {/* Botón de voz AI */}
                 <button
-                  onClick={() => toggleSpeech(birthday.dialogues)}
-                  className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isSpeaking
+                  onClick={() => speakWithGemini(birthday.dialogues)}
+                  className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isGeminiSpeaking || isGeminiThinking
                     ? 'bg-red-500 text-white animate-pulse hover:bg-red-600'
                     : 'bg-gradient-to-r from-[#a3cf33] to-yellow-400 text-black hover:scale-105'
                     }`}
                 >
-                  <i className={`fa-solid ${isSpeaking ? 'fa-stop' : 'fa-volume-high'} text-lg`}></i>
-                  {isSpeaking ? '⏹️ Detener' : '🎙️ Escuchar Saludo'}
+                  {isGeminiThinking ? (
+                    <>
+                      <i className="fa-solid fa-spinner fa-spin text-lg"></i>
+                      Generando...
+                    </>
+                  ) : isGeminiSpeaking ? (
+                    <>
+                      <i className="fa-solid fa-stop text-lg"></i>
+                      ⏹️ Detener
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-microphone-lines text-lg"></i>
+                      🎙️ Escuchar Saludo
+                    </>
+                  )}
                 </button>
 
                 <div className={`flex items-start gap-3 p-3 rounded-2xl transition-all duration-500 ${activeDialogue === 0 ? 'bg-[#a3cf33]/20 ring-2 ring-[#a3cf33] scale-[1.02]' : ''}`}>
@@ -411,16 +511,30 @@ const ShortsView: React.FC = () => {
 
             {/* Diálogos con voz */}
             <div className="space-y-4 bg-black/40 backdrop-blur-sm rounded-3xl p-5 border border-white/10">
-              {/* Botón para escuchar */}
+              {/* Botón de voz AI */}
               <button
-                onClick={() => toggleSpeech(PROMO_SALUDITOS.dialogues)}
-                className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isSpeaking
+                onClick={() => speakWithGemini(PROMO_SALUDITOS.dialogues)}
+                className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isGeminiSpeaking || isGeminiThinking
                   ? 'bg-red-500 text-white animate-pulse hover:bg-red-600'
                   : 'bg-gradient-to-r from-cyan-500 to-[#a3cf33] text-black hover:scale-105'
                   }`}
               >
-                <i className={`fa-solid ${isSpeaking ? 'fa-stop' : 'fa-volume-high'} text-lg`}></i>
-                {isSpeaking ? '⏹️ Detener' : '🎙️ Escuchar Invitación'}
+                {isGeminiThinking ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin text-lg"></i>
+                    Generando...
+                  </>
+                ) : isGeminiSpeaking ? (
+                  <>
+                    <i className="fa-solid fa-stop text-lg"></i>
+                    ⏹️ Detener
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-microphone-lines text-lg"></i>
+                    🎙️ Escuchar Invitación
+                  </>
+                )}
               </button>
 
               {PROMO_SALUDITOS.dialogues.map((dialogue, idx) => (
@@ -525,16 +639,30 @@ const ShortsView: React.FC = () => {
 
             {/* Diálogos con voz */}
             <div className="space-y-4 bg-black/40 backdrop-blur-sm rounded-3xl p-5 border border-white/10">
-              {/* Botón para escuchar */}
+              {/* Botón de voz AI */}
               <button
-                onClick={() => toggleSpeech(SPOT_MERCADO_14_FEBRERO.dialogues)}
-                className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isSpeaking
+                onClick={() => speakWithGemini(SPOT_MERCADO_14_FEBRERO.dialogues)}
+                className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isGeminiSpeaking || isGeminiThinking
                   ? 'bg-red-500 text-white animate-pulse hover:bg-red-600'
                   : 'bg-gradient-to-r from-rose-500 to-red-500 text-white hover:scale-105'
                   }`}
               >
-                <i className={`fa-solid ${isSpeaking ? 'fa-stop' : 'fa-volume-high'} text-lg`}></i>
-                {isSpeaking ? '⏹️ Detener' : '🎙️ Escuchar Anuncio'}
+                {isGeminiThinking ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin text-lg"></i>
+                    Generando...
+                  </>
+                ) : isGeminiSpeaking ? (
+                  <>
+                    <i className="fa-solid fa-stop text-lg"></i>
+                    ⏹️ Detener
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-microphone-lines text-lg"></i>
+                    🎙️ Escuchar Anuncio
+                  </>
+                )}
               </button>
 
               {SPOT_MERCADO_14_FEBRERO.dialogues.map((dialogue, idx) => (

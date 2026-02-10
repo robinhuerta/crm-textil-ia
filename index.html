@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>La Nueva 5:40 | Radio en Vivo</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#05080f">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -104,6 +105,56 @@
     .no-scrollbar {
       -ms-overflow-style: none;
       scrollbar-width: none;
+    }
+
+    /* Animaciones para Events View */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes gradient {
+
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    .animate-scaleIn {
+      animation: scaleIn 0.4s ease-out forwards;
+    }
+
+    .animate-gradient {
+      background-size: 200% 200%;
+      animation: gradient 8s ease infinite;
     }
   </style>
   <script type="importmap">

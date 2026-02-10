@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { WHATSAPP_URL, TIKTOK_URL, FACEBOOK_URL, RADIO_STREAM_URL, RADIO_STREAM_CUMBIAS, RADIO_STREAM_HUAYNOS } from '../constants';
+import { WHATSAPP_URL, TIKTOK_URL, FACEBOOK_URL, RADIO_STREAM_URL, RADIO_STREAM_CUMBIAS, RADIO_STREAM_HUAYNOS, GREETINGS_WHATSAPP } from '../constants';
+import { NavTab } from '../types';
 
 interface HomeViewProps {
   onPlayToggle: () => void;
@@ -53,8 +53,48 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
     window.open(`${WHATSAPP_URL}?text=${msg}`, '_blank');
   };
 
+  const navigateToGreetings = () => {
+    window.dispatchEvent(new CustomEvent('navigate_to_tab', { detail: NavTab.GREETINGS }));
+  };
+
   return (
     <div className="space-y-6 md:space-y-10 animate-fadeIn">
+      {/* BANNER SALUDITOS EN VIVO */}
+      <section className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] p-6 md:p-8">
+        <div className="absolute inset-0 bg-gradient-to-br from-green-600/20 via-[#10B981]/10 to-emerald-600/20 animate-gradient"></div>
+        <div className="absolute inset-0 backdrop-blur-3xl border border-green-500/20 rounded-[2rem] md:rounded-[3rem]"></div>
+
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex-1 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600/30 to-emerald-600/30 border border-green-500/40 rounded-full text-green-200 text-[9px] font-black uppercase tracking-[0.3em] backdrop-blur-xl mb-3">
+              <i className="fa-solid fa-sparkles animate-pulse"></i>
+              Nuevo
+            </div>
+            <h3 className="text-white font-black text-2xl md:text-3xl uppercase mb-2">
+              ¡Saluditos <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">Al Aire!</span>
+            </h3>
+            <p className="text-slate-400 text-sm md:text-base max-w-lg">
+              📱 Envía tu saludo por WhatsApp y lo leeremos al aire con voz AI profesional
+            </p>
+          </div>
+
+          <div className="flex items-center justify-center w-full md:w-auto">
+            <a
+              href={`${GREETINGS_WHATSAPP}?text=Hola! Quiero enviar un saludo para:`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-r from-[#25D366] to-[#20bd5a] text-white font-black rounded-2xl text-base uppercase tracking-widest hover:shadow-2xl hover:shadow-green-500/50 transition-all hover:scale-105 active:scale-95"
+            >
+              <i className="fa-brands fa-whatsapp text-2xl"></i>
+              <div className="text-left">
+                <p className="text-xs opacity-80">Envía tu saludo al</p>
+                <p className="text-lg">930-404-573</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* SECTOR ESTACIONES */}
       <section className="glass-dark p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-white/5 space-y-6 md:space-y-8 shadow-2xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 border-b border-white/5 pb-6">
@@ -74,19 +114,12 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap justify-center items-center gap-3 w-full lg:w-auto">
-            <button
-              onClick={pedirCancion}
-              className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-[#25D366] text-white shadow-xl shadow-[#25D366]/20 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all active:scale-95 group"
-            >
-              <i className="fa-brands fa-whatsapp text-xl group-hover:animate-bounce"></i>
-              WhatsApp
-            </button>
+          <div className="flex justify-center items-center w-full lg:w-auto">
             <button
               onClick={triggerDjTest}
-              className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-orange-600 text-white shadow-xl shadow-orange-600/20 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-orange-500 hover:scale-105 transition-all active:scale-95 group"
+              className="flex items-center justify-center gap-2 px-8 py-4 bg-orange-600 text-white shadow-xl shadow-orange-600/20 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-orange-500 hover:scale-105 transition-all active:scale-95 group"
             >
-              <i className="fa-solid fa-microphone-lines text-xl group-hover:scale-110 transition-transform"></i>
+              <i className="fa-solid fa-microphone-lines text-2xl group-hover:scale-110 transition-transform"></i>
               DJ AI
             </button>
           </div>
@@ -100,10 +133,10 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
             <StreamBtn label="Huaynos" icon="fa-music" active={activeStream === RADIO_STREAM_HUAYNOS} color="bg-orange-500" onClick={() => switchStream(RADIO_STREAM_HUAYNOS)} />
           </div>
         </div>
-      </section>
+      </section >
 
       {/* HERO PLAYER */}
-      <section className="bg-gradient-to-br from-[#0a0f1a] to-black rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-14 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 shadow-2xl overflow-hidden relative group">
+      < section className="bg-gradient-to-br from-[#0a0f1a] to-black rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-14 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 shadow-2xl overflow-hidden relative group" >
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#a3cf33]/5 blur-[100px] rounded-full group-hover:bg-[#a3cf33]/10 transition-all duration-1000"></div>
         <div className="text-center md:text-left space-y-4 md:space-y-6 z-10">
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter leading-none">
@@ -117,10 +150,10 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
         >
           <i className={`fa-solid ${isPlaying ? 'fa-pause' : 'fa-play ml-2'} text-3xl md:text-5xl lg:text-6xl`}></i>
         </button>
-      </section>
+      </section >
 
       {/* SOCIAL GRID */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      < div className="grid grid-cols-2 lg:grid-cols-4 gap-4" >
         <SocialCard icon="fa-whatsapp" label="WhatsApp" color="#25D366" link={WHATSAPP_URL} />
         <SocialCard icon="fa-tiktok" label="TikTok" color="#ffffff" link={TIKTOK_URL} />
         <SocialCard icon="fa-facebook-f" label="Facebook" color="#1877F2" link={FACEBOOK_URL} />
@@ -128,8 +161,8 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
           <i className="fa-solid fa-clock-rotate-left text-[#a3cf33] text-3xl group-hover:rotate-[-45deg] transition-transform duration-500"></i>
           <span className="text-white text-[10px] font-black uppercase tracking-widest text-center">En Vivo 24/7</span>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

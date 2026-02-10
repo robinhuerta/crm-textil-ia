@@ -1,16 +1,22 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { NavTab, RadioEvent } from './types';
+
+// Componentes críticos - carga inmediata
 import HomeView from './components/HomeView';
-import VideoView from './components/VideoView';
-import ShortsView from './components/ShortsView';
-import EventsView from './components/EventsView';
-import ChatAssistant from './components/ChatAssistant';
-import SettingsView from './components/SettingsView';
-import MusicLibraryView from './components/MusicLibraryView';
-import PollsView from './components/PollsView';
 import PlayerBar from './components/PlayerBar';
 import { Logo } from './components/Logo';
+
+// Componentes no críticos - lazy loading
+const VideoView = lazy(() => import('./components/VideoView'));
+const ShortsView = lazy(() => import('./components/ShortsView'));
+const EventsView = lazy(() => import('./components/EventsView'));
+const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
+const MusicLibraryView = lazy(() => import('./components/MusicLibraryView'));
+const PollsView = lazy(() => import('./components/PollsView'));
+const LiveGreetingsView = lazy(() => import('./components/LiveGreetingsView'));
+const SettingsView = lazy(() => import('./components/SettingsView'));
+
 import { GoogleGenAI, Modality } from "@google/genai";
 import { DEFAULT_HOURLY_SCRIPTS, DEFAULT_JINGLES, MOCK_EVENTS, RADIO_STREAM_URL } from './constants';
 import { decodeAudioData } from './utils/audioUtils';
@@ -71,6 +77,25 @@ const App: React.FC = () => {
       window.removeEventListener('navigate_to_tab', handleNavigation);
       window.removeEventListener('radio_playback_control', handlePlayback);
       window.removeEventListener('stop_radio_signal', handleStop);
+    };
+  }, []);
+
+  // Detectar URL secreta para panel de admin de saluditos
+  useEffect(() => {
+    const checkSecretAccess = () => {
+      const hash = window.location.hash;
+      if (hash === '#admin-saluditos') {
+        setActiveTab(NavTab.GREETINGS);
+        // Limpiar el hash para no revelar la URL
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    };
+
+    checkSecretAccess();
+    window.addEventListener('hashchange', checkSecretAccess);
+
+    return () => {
+      window.removeEventListener('hashchange', checkSecretAccess);
     };
   }, []);
 
@@ -207,39 +232,47 @@ const App: React.FC = () => {
           <NavItem icon="fa-video" label="5:40 TV" color="#FF5252" active={activeTab === NavTab.VIDEOS} onClick={() => setActiveTab(NavTab.VIDEOS)} />
           <NavItem icon="fa-calendar-alt" label="Agenda" color="#E040FB" active={activeTab === NavTab.EVENTS} onClick={() => setActiveTab(NavTab.EVENTS)} hasIndicator={hasUpcomingEvents} />
           <NavItem icon="fa-robot" label="Asistente AI" color="#00E5FF" active={activeTab === NavTab.CHAT} onClick={() => setActiveTab(NavTab.CHAT)} />
-          <div className="pt-4 mt-4 border-t border-white/5">
-            <NavItem icon="fa-gear" label="Plan Maestro" color="#94a3b8" active={activeTab === NavTab.SETTINGS} onClick={() => setActiveTab(NavTab.SETTINGS)} />
-          </div>
+          <NavItem icon="fa-gear" label="Settings" color="#78909C" active={activeTab === NavTab.SETTINGS} onClick={() => setActiveTab(NavTab.SETTINGS)} />
         </nav>
       </aside>
 
       <main className={`flex-1 transition-all duration-500 overflow-y-auto h-screen no-scrollbar ${activeTab === NavTab.SHORTS ? 'p-0' : 'p-4 md:p-8 lg:ml-72'} ${activeTab === NavTab.HOME || activeTab === NavTab.VIDEOS ? 'pb-48' : 'pb-32'}`}>
         <div className={`mx-auto w-full ${activeTab === NavTab.SHORTS ? 'max-w-none' : 'max-w-screen-xl'}`}>
           {activeTab !== NavTab.SHORTS && (
-            <div className="lg:hidden flex items-center justify-between mb-6 glass-dark px-5 py-4 rounded-[2rem] sticky top-2 z-40 border border-white/10">
+            <div className="lg:hidden flex items-center justify-center mb-6 glass-dark px-5 py-4 rounded-[2rem] sticky top-2 z-40 border border-white/10">
               <Logo className="w-28" />
-              <button onClick={() => setActiveTab(NavTab.SETTINGS)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400">
-                <i className="fa-solid fa-gears"></i>
-              </button>
             </div>
           )}
 
           {activeTab === NavTab.HOME && <HomeView onPlayToggle={() => setIsPlaying(!isPlaying)} isPlaying={isPlaying} />}
-          {activeTab === NavTab.VIDEOS && <VideoView />}
-          {activeTab === NavTab.SHORTS && <ShortsView />}
-          {activeTab === NavTab.EVENTS && <EventsView />}
-          {activeTab === NavTab.CHAT && <ChatAssistant />}
-          {activeTab === NavTab.SETTINGS && <SettingsView />}
-          {activeTab === NavTab.MUSIC && <MusicLibraryView />}
-          {activeTab === NavTab.POLLS && <PollsView />}
+
+          <Suspense fallback={
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-center space-y-4">
+                <div className="relative w-16 h-16 mx-auto">
+                  <div className="absolute inset-0 border-4 border-[#a3cf33]/20 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-[#a3cf33] rounded-full border-t-transparent animate-spin"></div>
+                </div>
+                <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">🎵 Cargando...</p>
+              </div>
+            </div>
+          }>
+            {activeTab === NavTab.VIDEOS && <VideoView />}
+            {activeTab === NavTab.SHORTS && <ShortsView />}
+            {activeTab === NavTab.EVENTS && <EventsView />}
+            {activeTab === NavTab.CHAT && <ChatAssistant />}
+            {activeTab === NavTab.MUSIC && <MusicLibraryView />}
+            {activeTab === NavTab.POLLS && <PollsView />}
+            {activeTab === NavTab.GREETINGS && <LiveGreetingsView />}
+            {activeTab === NavTab.SETTINGS && <SettingsView />}
+          </Suspense>
         </div>
       </main>
 
       <nav className="fixed bottom-4 left-4 right-4 h-16 glass-dark rounded-full px-2 flex justify-between items-center z-[200] border border-white/10 lg:hidden backdrop-blur-3xl">
-        {/* Izquierda del centro */}
+        {/* Izquierda del centro - 3 botones */}
         <div className="flex items-center gap-1">
           <MobileIcon icon="fa-house" color="#a3cf33" active={activeTab === NavTab.HOME} onClick={() => setActiveTab(NavTab.HOME)} />
-          <MobileIcon icon="fa-music" color="#E0E0E0" active={activeTab === NavTab.MUSIC} onClick={() => setActiveTab(NavTab.MUSIC)} />
           <MobileIcon icon="fa-bolt" color="#FFD700" active={activeTab === NavTab.SHORTS} onClick={() => setActiveTab(NavTab.SHORTS)} />
           <MobileIcon icon="fa-video" color="#FF5252" active={activeTab === NavTab.VIDEOS} onClick={() => setActiveTab(NavTab.VIDEOS)} />
         </div>
@@ -253,9 +286,11 @@ const App: React.FC = () => {
           <i className="fa-solid fa-robot text-2xl text-slate-900"></i>
         </button>
 
-        {/* Derecha del centro */}
+        {/* Derecha del centro - 3 botones */}
         <div className="flex items-center gap-1">
-          <MobileIcon icon="fa-calendar" color="#E040FB" active={activeTab === NavTab.EVENTS} onClick={() => setActiveTab(NavTab.EVENTS)} hasIndicator={hasUpcomingEvents} />
+          <MobileIcon icon="fa-music" color="#E0E0E0" active={activeTab === NavTab.MUSIC} onClick={() => setActiveTab(NavTab.MUSIC)} />
+          <MobileIcon icon="fa-star" color="#FF9800" active={activeTab === NavTab.POLLS} onClick={() => setActiveTab(NavTab.POLLS)} />
+          <MobileIcon icon="fa-gear" color="#78909C" active={activeTab === NavTab.SETTINGS} onClick={() => setActiveTab(NavTab.SETTINGS)} />
         </div>
       </nav>
 

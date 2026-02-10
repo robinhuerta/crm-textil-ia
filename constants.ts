@@ -6,6 +6,7 @@ export const RADIO_STREAM_CUMBIAS = 'https://stream-145.zeno.fm/ut46b6drneruv?zt
 export const RADIO_STREAM_HUAYNOS = 'https://stream.zeno.fm/eiev8ylwugruv';
 
 export const WHATSAPP_URL = 'https://wa.me/51900758816';
+export const GREETINGS_WHATSAPP = 'https://wa.me/51930404573'; // Saludos en vivo
 export const TIKTOK_URL = 'https://www.tiktok.com/@lanueva540';
 export const FACEBOOK_URL = 'https://www.facebook.com/lanueva540';
 export const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@lanueva540';
