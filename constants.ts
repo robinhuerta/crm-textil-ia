@@ -26,7 +26,8 @@ export const DEFAULT_JINGLES: string[] = [
     "¡Sabor, ritmo y sentimiento... en la 5:40!",
     "¡La Nueva 5:40... simplemente la mejor, causa!",
     "¡No busques más, quédate con la verdadera: La Nueva 5:40!",
-    "¡Puro fuego, pura cumbia, pura 5:40!"
+    "¡Puro fuego, pura cumbia, pura 5:40!",
+    "¡No esperes más! Escribe tu saludo al WhatsApp... 930-404-573. Nuestra nueva voz virtual lo lee al aire... ¡al toque! Tú escribes, nosotros sonamos. La Nueva 5:40 Radio."
 ];
 
 export const MOCK_EVENTS: RadioEvent[] = [

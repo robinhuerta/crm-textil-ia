@@ -80,7 +80,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
 
           <div className="flex items-center justify-center w-full md:w-auto">
             <a
-              href={`${GREETINGS_WHATSAPP}?text=Hola! Quiero enviar un saludo para:`}
+              href={`${GREETINGS_WHATSAPP}?text=${encodeURIComponent("¡Hola! 👋 Bienvenido a La Nueva 5:40.\n\nTu saludo ya está en cola para ser leído por nuestra IA. 🤖\n\n⚠️ Ojo: Por favor escribe solo TEXTO, no envíes audios.\n\nEscúchanos en vivo aquí: 👇\n🔗 https://radioficial540.netlify.app/")}`}
               target="_blank"
               rel="noreferrer"
               className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-r from-[#25D366] to-[#20bd5a] text-white font-black rounded-2xl text-base uppercase tracking-widest hover:shadow-2xl hover:shadow-green-500/50 transition-all hover:scale-105 active:scale-95"
