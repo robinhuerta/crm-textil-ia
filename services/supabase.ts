@@ -3,14 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://zplvreuiuosmmeoaeaz.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbHZyZXVpdW9zbW1lb2VhZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NDc1MDcsImV4cCI6MjA4NTIyMzUwN30.NZE9qW4rKuZ_GZ2Xu2W3qo_vnKwO1Tud6OOAypnRg14';
 
-// Forzar configuración robusta de Realtime
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    realtime: {
-        params: {
-            eventsPerSecond: 10,
-        },
-    },
-});
+// Cliente estandar
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Types for polls
 export interface Poll {
@@ -22,7 +16,7 @@ export interface Poll {
     created_at: string;
 }
 
-// Get active poll (not expired)
+// Get active poll
 export async function getActivePoll(): Promise<Poll | null> {
     const now = new Date().toISOString();
     const { data, error } = await supabase
@@ -32,48 +26,22 @@ export async function getActivePoll(): Promise<Poll | null> {
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
-
     if (error || !data) return null;
     return data as Poll;
 }
 
 // Vote for an option
 export async function voteForOption(pollId: number, option: string): Promise<boolean> {
-    const { data: poll, error: fetchError } = await supabase
-        .from('polls')
-        .select('votes')
-        .eq('id', pollId)
-        .single();
-
+    const { data: poll, error: fetchError } = await supabase.from('polls').select('votes').eq('id', pollId).single();
     if (fetchError || !poll) return false;
-
     const currentVotes = poll.votes || {};
     currentVotes[option] = (currentVotes[option] || 0) + 1;
-
-    const { error: updateError } = await supabase
-        .from('polls')
-        .update({ votes: currentVotes })
-        .eq('id', pollId);
-
+    const { error: updateError } = await supabase.from('polls').update({ votes: currentVotes }).eq('id', pollId);
     return !updateError;
 }
 
-export function hasUserVoted(pollId: number): boolean {
-    const votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
-    return votedPolls.includes(pollId);
-}
-
-export function markPollAsVoted(pollId: number): void {
-    const votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
-    if (!votedPolls.includes(pollId)) {
-        votedPolls.push(pollId);
-        localStorage.setItem('votedPolls', JSON.stringify(votedPolls));
-    }
-}
-
-// --- REALTIME RADIO EVENTS (GREETINGS) ---
-
-export const RADIO_EVENTS_CHANNEL = 'radio_broadcast_v1';
+// --- REALTIME RADIO EVENTS ---
+export const RADIO_EVENTS_CHANNEL = 'radio_broadcast_v10'; // Nuevo canal para evitar cache de error
 
 let radioChannel: any = null;
 let listeners: ((payload: any) => void)[] = [];
@@ -95,42 +63,45 @@ if (localChannel) {
     };
 }
 
-// Inicializar canal
+// Inicializar canal robusto
 export const setupRadioChannel = () => {
-    // Si ya estamos suscritos, no hacer nada
     if (radioChannel && (radioChannel.state === 'joined' || radioChannel.state === 'joining')) {
         return radioChannel;
     }
 
-    // Limpiar previo si existe
     if (radioChannel) {
         supabase.removeChannel(radioChannel);
     }
 
-    console.log(`📡 [Radio] Conectando a canal: ${RADIO_EVENTS_CHANNEL}`);
+    console.log(`📡 [Radio] Conectando a ${RADIO_EVENTS_CHANNEL}...`);
 
-    // Crear canal simple
-    radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL);
+    // Canal simple con broadcast
+    radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL, {
+        config: {
+            broadcast: { self: true }
+        }
+    });
 
     radioChannel
         .on('broadcast', { event: 'live_greeting' }, (payload: any) => {
-            console.log('🗣️ [Radio] Evento recibido:', payload);
+            console.log('🗣️ [Radio] Saludo recibido globalmente');
             listeners.forEach(cb => cb(payload.payload));
         })
-        .subscribe(async (status: string, err: any) => {
+        .subscribe((status: string, err: any) => {
             notifyStatus(status, err);
 
             if (status === 'SUBSCRIBED') {
                 console.log('✅ RADIO ONLINE');
                 retryCount = 0;
-            } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
-                console.warn(`⚠️ Error: ${status}`, err);
-
-                // Reintento exponencial limitado
-                if (retryCount < 8) {
-                    retryCount++;
-                    const delay = 2000 * retryCount;
-                    setTimeout(() => setupRadioChannel(), delay);
+            } else {
+                console.warn(`⚠️ [Radio] Estado: ${status}`, err || '');
+                // Fallback a local si falla lo global
+                if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
+                    notifyStatus('LOCAL_MODE');
+                    if (retryCount < 5) {
+                        retryCount++;
+                        setTimeout(() => setupRadioChannel(), 3000 * retryCount);
+                    }
                 }
             }
         });
@@ -141,29 +112,28 @@ export const setupRadioChannel = () => {
 // Enviar saludo
 export const broadcastGreeting = async (greeting: any) => {
     const channel = setupRadioChannel();
-    let sentViaSupabase = false;
+    let sentGlobal = false;
 
-    try {
-        const resp = await Promise.race([
-            channel.send({
+    // Asegurar que el canal está listo para broadcast
+    if (channel.state === 'joined') {
+        try {
+            const resp = await channel.send({
                 type: 'broadcast',
                 event: 'live_greeting',
                 payload: greeting
-            }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 4000))
-        ]);
-
-        if (resp === 'ok') sentViaSupabase = true;
-    } catch (err) {
-        console.error('Broadcast failed:', err);
+            });
+            if (resp === 'ok') sentGlobal = true;
+        } catch (e) {
+            console.error('Broadcast failed:', e);
+        }
     }
 
-    // Fallback local obligatorio
+    // SIEMPRE enviar local
     if (localChannel) {
         localChannel.postMessage({ type: 'broadcast', event: 'live_greeting', payload: greeting });
     }
 
-    return sentViaSupabase;
+    return sentGlobal;
 };
 
 export const subscribeToRadioEvents = (callback: (payload: any) => void) => {
@@ -176,9 +146,7 @@ export const subscribeToRadioEvents = (callback: (payload: any) => void) => {
 
 export const onRadioConnectionChange = (callback: (status: string, error?: any) => void) => {
     statusListeners.push(callback);
-    if (radioChannel) {
-        callback(radioChannel.state === 'joined' ? 'SUBSCRIBED' : radioChannel.state);
-    }
+    setupRadioChannel(); // Asegurar que intentamos conectar al pedir el estado
     return () => {
         statusListeners = statusListeners.filter(l => l !== callback);
     };
