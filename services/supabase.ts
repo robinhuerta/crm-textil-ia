@@ -112,59 +112,78 @@ export function getTimeRemaining(endsAt: string): { hours: number; minutes: numb
     return { hours, minutes, seconds, expired: false };
 }
 
-export const RADIO_EVENTS_CHANNEL = 'radio-live-v540-v2';
-
-// Fallback Local (BroadcastChannel API - Native Browser)
-const localChannel = new BroadcastChannel('radio-local-fallback');
+export const RADIO_EVENTS_CHANNEL = 'radio_global';
 
 // Canal único global
 let radioChannel: ReturnType<typeof supabase.channel> | null = null;
 let listeners: ((payload: any) => void)[] = [];
 let statusListeners: ((status: string) => void)[] = [];
-
-// Escuchar canal local (Fallback)
-localChannel.onmessage = (event) => {
-    console.log('📡 [Local Mode] Mensaje recibido vía navegador:', event.data);
-    if (event.data?.type === 'broadcast' && event.data?.event === 'live_greeting') {
-        listeners.forEach(cb => cb(event.data.payload));
-    }
-};
+let retryCount = 0;
 
 // Notificar estado a la UI
 const notifyStatus = (status: string) => {
-    console.log(`📡 [RadioConnection] Status: ${status}`);
+    console.log(`📡 [RadioStatus] ${status}`);
     statusListeners.forEach(l => l(status));
 };
 
-// Inicializar canal (Singleton)
-const getChannel = () => {
-    if (radioChannel && radioChannel.state === 'joined') return radioChannel;
+// Exportar para debug en consola si el usuario lo necesita
+(window as any).radioDebug = () => {
+    console.log('--- RADIO DEBUG ---');
+    console.log('Channel State:', radioChannel?.state);
+    console.log('Retry Count:', retryCount);
+};
 
-    if (radioChannel) {
-        supabase.removeChannel(radioChannel);
+const localChannel = typeof window !== 'undefined' ? new BroadcastChannel('radio-local-fallback') : null;
+
+if (localChannel) {
+    localChannel.onmessage = (event) => {
+        console.log('📡 [Local Mode] Mensaje recibido vía navegador:', event.data);
+        if (event.data?.type === 'broadcast' && event.data?.event === 'live_greeting') {
+            listeners.forEach(cb => cb(event.data.payload));
+        }
+    };
+}
+// Inicializar canal (Singleton con Reintento)
+const getChannel = () => {
+    if (radioChannel && (radioChannel.state === 'joined' || radioChannel.state === 'joining')) {
+        return radioChannel;
     }
 
-    console.log('📡 [RadioConnection] Connecting to Global Realtime...');
+    // Limpieza total antes de reintento
+    if (radioChannel) {
+        console.log('🧹 [Radio] Cleaning old channel...');
+        supabase.removeChannel(radioChannel);
+        radioChannel = null;
+    }
+
+    console.log(`📡 [Radio] Connecting to Global Channel: ${RADIO_EVENTS_CHANNEL}...`);
+
     radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL, {
-        config: {
-            broadcast: { self: true }
-        }
+        config: { broadcast: { self: true } }
     });
 
     radioChannel
         .on('broadcast', { event: 'live_greeting' }, (payload) => {
-            console.log('🗣️ [Radio] Saludo recibido globalmente:', payload);
+            console.log('🗣️ [Radio] Global Event Received:', payload);
             listeners.forEach(cb => cb(payload.payload));
         })
-        .subscribe((status, err) => {
-            console.log(`📡 [RadioState] ${status}`, err || '');
+        .subscribe(async (status, err) => {
             notifyStatus(status);
 
             if (status === 'SUBSCRIBED') {
-                console.log('✅ RADIO ONLINE - Punto Verde');
-            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                console.error('❌ Connection Failed:', status, err);
-                notifyStatus('LOCAL_MODE'); // Fallback a amarillo
+                console.log('✅ RADIO ONLINE');
+                retryCount = 0;
+            } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
+                console.error(`❌ Radio Error (${status}):`, err);
+                notifyStatus('LOCAL_MODE');
+
+                // Reintento con backoff (máximo 5 veces)
+                if (retryCount < 5) {
+                    retryCount++;
+                    const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+                    console.log(`🔄 Reintento #${retryCount} en ${delay / 1000}s...`);
+                    setTimeout(() => getChannel(), delay);
+                }
             }
         });
 
@@ -209,12 +228,14 @@ export const broadcastGreeting = async (greeting: any) => {
     }
 
     // 2. SIEMPRE enviar por canal local también (para pestañas en la misma PC)
-    console.log('📡 [Local Mode] Broadcasting via fallback channel...');
-    localChannel.postMessage({
-        type: 'broadcast',
-        event: 'live_greeting',
-        payload: greeting
-    });
+    if (localChannel) {
+        console.log('📡 [Local Mode] Broadcasting via fallback channel...');
+        localChannel.postMessage({
+            type: 'broadcast',
+            event: 'live_greeting',
+            payload: greeting
+        });
+    }
 
     // 3. Notificar a la UI si falló lo global para que el admin sepa
     if (!sentViaSupabase) {
