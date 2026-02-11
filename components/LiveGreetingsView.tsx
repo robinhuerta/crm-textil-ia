@@ -78,25 +78,30 @@ const LiveGreetingsView: React.FC = () => {
             : `¡Tenemos un saludo! Para ${greeting.to}, de parte de ${greeting.from}. ¡Un abrazo grande!`;
 
         try {
-            // EN LUGAR DE REPRODUCIR LOCALMENTE, HACEMOS BROADCAST
             setIsGenerating(true);
 
-            // 1. Actualizar estado local a "reading" para feedback inmediato
-            setGreetings(greetings.map(g =>
-                g.id === greeting.id ? { ...g, status: 'reading' } : g
-            ));
+            // 1. Transmitir a todos los oyentes
+            const success = await broadcastGreeting(greeting);
 
-            // 2. Transmitir a todos los oyentes (incluido este admin si escucha la radio por app)
-            await broadcastGreeting(greeting);
-
-            // 3. Simular tiempo de lectura para UX del admin y luego marcar como completado
-            setTimeout(() => {
+            if (success) {
+                // 2. Actualizar estado local solo si se envió globalmente
                 setGreetings(greetings.map(g =>
-                    g.id === greeting.id ? { ...g, status: 'completed' } : g
+                    g.id === greeting.id ? { ...g, status: 'reading' } : g
                 ));
-                setActiveGreeting(null);
+
+                // 3. Simular tiempo de lectura para UX del admin
+                setTimeout(() => {
+                    setGreetings(greetings.map(g =>
+                        g.id === greeting.id ? { ...g, status: 'completed' } : g
+                    ));
+                    setActiveGreeting(null);
+                    setIsGenerating(false);
+                }, 10000);
+            } else {
                 setIsGenerating(false);
-            }, 10000); // 10 segundos aprox de espera visual
+                setActiveGreeting(null);
+                alert('⚠️ No se pudo transmitir globalmente. Verifica que el punto esté en VERDE arriba a la derecha.');
+            }
 
         } catch (error) {
             console.error('Error broadcasting greeting:', error);

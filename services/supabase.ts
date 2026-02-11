@@ -140,12 +140,22 @@ localChannel.onmessage = (event) => {
 
 // Inicializar canal (Singleton)
 const getChannel = () => {
-    if (radioChannel) return radioChannel;
+    if (radioChannel) {
+        // Si el canal existe pero está en un estado de error, reintentar suscripción
+        if (radioChannel.state === 'closed' || radioChannel.state === 'errored') {
+            console.log('🔄 [RadioConnection] Channel closed/errored, resubscribing...');
+            radioChannel.subscribe();
+        }
+        return radioChannel;
+    }
 
     console.log('📡 [RadioConnection] Initializing Supabase channel...');
     radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL, {
         config: {
-            broadcast: { self: true },
+            broadcast: {
+                self: true,
+                ack: true // Habilitar ACKs para mayor confiabilidad
+            },
             presence: { key: 'radio-listener' },
         }
     });
@@ -158,9 +168,13 @@ const getChannel = () => {
         .subscribe((status, err) => {
             notifyStatus(status);
 
+            if (status === 'SUBSCRIBED') {
+                console.log('✅ [RadioConnection] Subscribed to Global Radio');
+            }
+
             if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
                 console.error('❌ [RadioConnection] Connection failed:', status, err);
-                notifyStatus('LOCAL_MODE'); // Avisar a la UI que estamos en modo local
+                notifyStatus('LOCAL_MODE');
             }
         });
 
@@ -173,17 +187,38 @@ export const broadcastGreeting = async (greeting: any) => {
 
     // 1. Intentar enviar por Supabase (Si está conectado)
     let sentViaSupabase = false;
-    if (channel.state === 'joined') {
-        const resp = await channel.send({
+
+    // Forzar reconexión si el canal no está unido
+    if (channel.state !== 'joined') {
+        console.warn(`📡 [RadioConnection] Channel in state ${channel.state}, attempting resubscribe...`);
+        channel.subscribe();
+    }
+
+    try {
+        // Enviar con timeout corto para no bloquear la UI si falla
+        const sendPromise = channel.send({
             type: 'broadcast',
             event: 'live_greeting',
             payload: greeting
         });
-        if (resp === 'ok') sentViaSupabase = true;
+
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('TIMEOUT')), 4000)
+        );
+
+        const resp = await Promise.race([sendPromise, timeoutPromise]);
+
+        if (resp === 'ok') {
+            sentViaSupabase = true;
+            console.log('✅ [RadioConnection] Sent via Global Supabase');
+        } else {
+            console.warn('⚠️ [RadioConnection] Supabase send failed:', resp);
+        }
+    } catch (err) {
+        console.warn('❌ [RadioConnection] Supabase exception:', err);
     }
 
-    // 2. SIEMPRE enviar por canal local también (para testing robusto entre pestañas)
-    // El receptor debe manejar duplicados si ambos llegan, pero mejor que sobre a que falte en testing.
+    // 2. SIEMPRE enviar por canal local también (para pestañas en la misma PC)
     console.log('📡 [Local Mode] Broadcasting via fallback channel...');
     localChannel.postMessage({
         type: 'broadcast',
@@ -191,13 +226,14 @@ export const broadcastGreeting = async (greeting: any) => {
         payload: greeting
     });
 
-    // 3. Feedback
-    if (sentViaSupabase) {
-        console.log('✅ [RadioConnection] Sent via Supabase');
-    } else {
-        console.warn('⚠️ [RadioConnection] Supabase failed, sent via Local Fallback only');
+    // 3. Notificar a la UI si falló lo global para que el admin sepa
+    if (!sentViaSupabase) {
         notifyStatus('LOCAL_MODE');
+    } else {
+        notifyStatus('SUBSCRIBED');
     }
+
+    return sentViaSupabase;
 };
 
 // Suscribirse (UI)
