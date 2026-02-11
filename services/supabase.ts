@@ -112,9 +112,7 @@ export function getTimeRemaining(endsAt: string): { hours: number; minutes: numb
     return { hours, minutes, seconds, expired: false };
 }
 
-// --- REALTIME RADIO EVENTS (GREETINGS) ---
-
-export const RADIO_EVENTS_CHANNEL = 'radio-global-live-v1';
+export const RADIO_EVENTS_CHANNEL = 'radio-live-v540-v2';
 
 // Fallback Local (BroadcastChannel API - Native Browser)
 const localChannel = new BroadcastChannel('radio-local-fallback');
@@ -124,57 +122,49 @@ let radioChannel: ReturnType<typeof supabase.channel> | null = null;
 let listeners: ((payload: any) => void)[] = [];
 let statusListeners: ((status: string) => void)[] = [];
 
+// Escuchar canal local (Fallback)
+localChannel.onmessage = (event) => {
+    console.log('📡 [Local Mode] Mensaje recibido vía navegador:', event.data);
+    if (event.data?.type === 'broadcast' && event.data?.event === 'live_greeting') {
+        listeners.forEach(cb => cb(event.data.payload));
+    }
+};
+
 // Notificar estado a la UI
 const notifyStatus = (status: string) => {
     console.log(`📡 [RadioConnection] Status: ${status}`);
     statusListeners.forEach(l => l(status));
 };
 
-// Escuchar canal local (Fallback)
-localChannel.onmessage = (event) => {
-    console.log('📡 [Local Mode] Message received:', event.data);
-    if (event.data?.type === 'broadcast' && event.data?.event === 'live_greeting') {
-        listeners.forEach(cb => cb(event.data.payload));
-    }
-};
-
 // Inicializar canal (Singleton)
 const getChannel = () => {
+    if (radioChannel && radioChannel.state === 'joined') return radioChannel;
+
     if (radioChannel) {
-        // Si el canal existe pero está en un estado de error, reintentar suscripción
-        if (radioChannel.state === 'closed' || radioChannel.state === 'errored') {
-            console.log('🔄 [RadioConnection] Channel closed/errored, resubscribing...');
-            radioChannel.subscribe();
-        }
-        return radioChannel;
+        supabase.removeChannel(radioChannel);
     }
 
-    console.log('📡 [RadioConnection] Initializing Supabase channel...');
+    console.log('📡 [RadioConnection] Connecting to Global Realtime...');
     radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL, {
         config: {
-            broadcast: {
-                self: true,
-                ack: true // Habilitar ACKs para mayor confiabilidad
-            },
-            presence: { key: 'radio-listener' },
+            broadcast: { self: true }
         }
     });
 
     radioChannel
         .on('broadcast', { event: 'live_greeting' }, (payload) => {
-            console.log('📡 [RadioConnection] Event received:', payload);
+            console.log('🗣️ [Radio] Saludo recibido globalmente:', payload);
             listeners.forEach(cb => cb(payload.payload));
         })
         .subscribe((status, err) => {
+            console.log(`📡 [RadioState] ${status}`, err || '');
             notifyStatus(status);
 
             if (status === 'SUBSCRIBED') {
-                console.log('✅ [RadioConnection] Subscribed to Global Radio');
-            }
-
-            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                console.error('❌ [RadioConnection] Connection failed:', status, err);
-                notifyStatus('LOCAL_MODE');
+                console.log('✅ RADIO ONLINE - Punto Verde');
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                console.error('❌ Connection Failed:', status, err);
+                notifyStatus('LOCAL_MODE'); // Fallback a amarillo
             }
         });
 
