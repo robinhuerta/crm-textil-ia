@@ -32,7 +32,6 @@ export async function getActivePoll(): Promise<Poll | null> {
 
 // Vote for an option
 export async function voteForOption(pollId: number, option: string): Promise<boolean> {
-    // Get current poll
     const { data: poll, error: fetchError } = await supabase
         .from('polls')
         .select('votes')
@@ -41,11 +40,9 @@ export async function voteForOption(pollId: number, option: string): Promise<boo
 
     if (fetchError || !poll) return false;
 
-    // Increment vote count
     const currentVotes = poll.votes || {};
     currentVotes[option] = (currentVotes[option] || 0) + 1;
 
-    // Update poll
     const { error: updateError } = await supabase
         .from('polls')
         .update({ votes: currentVotes })
@@ -54,13 +51,11 @@ export async function voteForOption(pollId: number, option: string): Promise<boo
     return !updateError;
 }
 
-// Check if user already voted (using localStorage)
 export function hasUserVoted(pollId: number): boolean {
     const votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
     return votedPolls.includes(pollId);
 }
 
-// Mark poll as voted
 export function markPollAsVoted(pollId: number): void {
     const votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
     if (!votedPolls.includes(pollId)) {
@@ -69,7 +64,6 @@ export function markPollAsVoted(pollId: number): void {
     }
 }
 
-// Create a new poll (for admin use)
 export async function createPoll(question: string, options: string[], durationHours: number = 12): Promise<Poll | null> {
     const endsAt = new Date();
     endsAt.setHours(endsAt.getHours() + durationHours);
@@ -95,7 +89,6 @@ export async function createPoll(question: string, options: string[], durationHo
     return data as Poll;
 }
 
-// Get time remaining for poll
 export function getTimeRemaining(endsAt: string): { hours: number; minutes: number; seconds: number; expired: boolean } {
     const now = new Date().getTime();
     const end = new Date(endsAt).getTime();
@@ -112,76 +105,67 @@ export function getTimeRemaining(endsAt: string): { hours: number; minutes: numb
     return { hours, minutes, seconds, expired: false };
 }
 
-export const RADIO_EVENTS_CHANNEL = 'radio_global';
+// --- REALTIME RADIO EVENTS (GREETINGS) ---
 
-// Canal único global
-let radioChannel: ReturnType<typeof supabase.channel> | null = null;
+export const RADIO_EVENTS_CHANNEL = 'radio_broadcast_v1';
+
+let radioChannel: any = null;
 let listeners: ((payload: any) => void)[] = [];
 let statusListeners: ((status: string) => void)[] = [];
 let retryCount = 0;
 
-// Notificar estado a la UI
 const notifyStatus = (status: string) => {
     console.log(`📡 [RadioStatus] ${status}`);
     statusListeners.forEach(l => l(status));
-};
-
-// Exportar para debug en consola si el usuario lo necesita
-(window as any).radioDebug = () => {
-    console.log('--- RADIO DEBUG ---');
-    console.log('Channel State:', radioChannel?.state);
-    console.log('Retry Count:', retryCount);
 };
 
 const localChannel = typeof window !== 'undefined' ? new BroadcastChannel('radio-local-fallback') : null;
 
 if (localChannel) {
     localChannel.onmessage = (event) => {
-        console.log('📡 [Local Mode] Mensaje recibido vía navegador:', event.data);
+        console.log('📡 [Local] Message via BroadcastChannel:', event.data);
         if (event.data?.type === 'broadcast' && event.data?.event === 'live_greeting') {
             listeners.forEach(cb => cb(event.data.payload));
         }
     };
 }
+
 // Inicializar canal (Singleton con Reintento)
 const getChannel = () => {
     if (radioChannel && (radioChannel.state === 'joined' || radioChannel.state === 'joining')) {
         return radioChannel;
     }
 
-    // Limpieza total antes de reintento
     if (radioChannel) {
         console.log('🧹 [Radio] Cleaning old channel...');
         supabase.removeChannel(radioChannel);
-        radioChannel = null;
     }
 
-    console.log(`📡 [Radio] Connecting to Global Channel: ${RADIO_EVENTS_CHANNEL}...`);
+    console.log(`📡 [Radio] Connecting to Channel: ${RADIO_EVENTS_CHANNEL}...`);
 
     radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL, {
         config: { broadcast: { self: true } }
     });
 
     radioChannel
-        .on('broadcast', { event: 'live_greeting' }, (payload) => {
-            console.log('🗣️ [Radio] Global Event Received:', payload);
+        .on('broadcast', { event: 'live_greeting' }, (payload: any) => {
+            console.log('🗣️ [Radio] Global Event:', payload);
             listeners.forEach(cb => cb(payload.payload));
         })
-        .subscribe(async (status, err) => {
+        .subscribe(async (status: string, err: any) => {
             notifyStatus(status);
 
             if (status === 'SUBSCRIBED') {
                 console.log('✅ RADIO ONLINE');
                 retryCount = 0;
             } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
-                console.error(`❌ Radio Error (${status}):`, err);
+                console.error(`❌ Radio Error: ${status}`, err);
                 notifyStatus('LOCAL_MODE');
 
-                // Reintento con backoff (máximo 5 veces)
-                if (retryCount < 5) {
+                if (retryCount < 10) {
                     retryCount++;
-                    const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-                    console.log(`🔄 Reintento #${retryCount} en ${delay / 1000}s...`);
+                    const delay = Math.min(1000 * Math.pow(1.5, retryCount), 15000);
+                    console.log(`🔄 Reintento #${retryCount} en ${Math.round(delay / 1000)}s...`);
                     setTimeout(() => getChannel(), delay);
                 }
             }
@@ -193,43 +177,32 @@ const getChannel = () => {
 // Enviar saludo
 export const broadcastGreeting = async (greeting: any) => {
     const channel = getChannel();
-
-    // 1. Intentar enviar por Supabase (Si está conectado)
     let sentViaSupabase = false;
 
-    // Forzar reconexión si el canal no está unido
     if (channel.state !== 'joined') {
-        console.warn(`📡 [RadioConnection] Channel in state ${channel.state}, attempting resubscribe...`);
         channel.subscribe();
     }
 
     try {
-        // Enviar con timeout corto para no bloquear la UI si falla
-        const sendPromise = channel.send({
-            type: 'broadcast',
-            event: 'live_greeting',
-            payload: greeting
-        });
-
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('TIMEOUT')), 4000)
-        );
-
-        const resp = await Promise.race([sendPromise, timeoutPromise]);
+        const resp = await Promise.race([
+            channel.send({
+                type: 'broadcast',
+                event: 'live_greeting',
+                payload: greeting
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 5000))
+        ]);
 
         if (resp === 'ok') {
             sentViaSupabase = true;
-            console.log('✅ [RadioConnection] Sent via Global Supabase');
-        } else {
-            console.warn('⚠️ [RadioConnection] Supabase send failed:', resp);
+            console.log('✅ Sent via Supabase');
         }
     } catch (err) {
-        console.warn('❌ [RadioConnection] Supabase exception:', err);
+        console.warn('❌ Supabase broadcast error:', err);
     }
 
-    // 2. SIEMPRE enviar por canal local también (para pestañas en la misma PC)
+    // Fallback local
     if (localChannel) {
-        console.log('📡 [Local Mode] Broadcasting via fallback channel...');
         localChannel.postMessage({
             type: 'broadcast',
             event: 'live_greeting',
@@ -237,7 +210,6 @@ export const broadcastGreeting = async (greeting: any) => {
         });
     }
 
-    // 3. Notificar a la UI si falló lo global para que el admin sepa
     if (!sentViaSupabase) {
         notifyStatus('LOCAL_MODE');
     } else {
@@ -247,7 +219,6 @@ export const broadcastGreeting = async (greeting: any) => {
     return sentViaSupabase;
 };
 
-// Suscribirse (UI)
 export const subscribeToRadioEvents = (callback: (payload: any) => void) => {
     listeners.push(callback);
     getChannel();
@@ -256,20 +227,13 @@ export const subscribeToRadioEvents = (callback: (payload: any) => void) => {
     };
 };
 
-// Hook de estado (UI)
 export const onRadioConnectionChange = (callback: (status: string) => void) => {
     statusListeners.push(callback);
-    // Estado inicial
     if (radioChannel) {
-        if (radioChannel.state === 'closed' || radioChannel.state === 'errored') {
-            callback('LOCAL_MODE');
-        } else {
-            callback(radioChannel.state);
-        }
+        callback(radioChannel.state === 'joined' ? 'SUBSCRIBED' : radioChannel.state);
     } else {
         callback('CONNECTING');
     }
-
     return () => {
         statusListeners = statusListeners.filter(l => l !== callback);
     };
