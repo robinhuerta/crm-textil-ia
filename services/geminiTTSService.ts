@@ -1,5 +1,16 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
+// Simple fast hash for cache keys
+const simpleHash = (uniqueString: string) => {
+    let hash = 0;
+    for (let i = 0; i < uniqueString.length; i++) {
+        const char = uniqueString.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash &= hash;
+    }
+    return new Uint32Array([hash])[0].toString(36);
+};
+
 // Función reutilizable para generar audio con Gemini TTS
 export async function generateGeminiSpeech(
     text: string,
@@ -12,7 +23,16 @@ export async function generateGeminiSpeech(
         return undefined;
     }
 
+    // 1. Check Cache (localStorage)
+    const cacheKey = `tts_${simpleHash(text + voiceName)}`;
+    const cachedAudio = localStorage.getItem(cacheKey);
+    if (cachedAudio) {
+        console.log('⚡ [Gemini TTS] Cache Hit!');
+        return cachedAudio;
+    }
+
     try {
+        console.log('⏳ [Gemini TTS] Generating new audio...');
         const ai = new GoogleGenAI({ apiKey: key });
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
@@ -23,7 +43,28 @@ export async function generateGeminiSpeech(
             },
         });
 
-        return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+
+        // 2. Save to Cache
+        if (audioData) {
+            try {
+                // Limit cache size: Remove old generic items if full
+                localStorage.setItem(cacheKey, audioData);
+            } catch (e) {
+                console.warn('Cache full, clearing old TTS entries...');
+                // Simple strategy: Clear all TTS entries if full
+                Object.keys(localStorage).forEach(k => {
+                    if (k.startsWith('tts_')) localStorage.removeItem(k);
+                });
+                try {
+                    localStorage.setItem(cacheKey, audioData);
+                } catch (e2) {
+                    console.error('Failed to cache TTS even after clear');
+                }
+            }
+        }
+
+        return audioData;
     } catch (error) {
         console.error('[Gemini TTS] Error generating speech:', error);
         return undefined;

@@ -14,6 +14,8 @@ export const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@lanueva540';
 export const SPOTIFY_PROFILE_URL = 'https://open.spotify.com/user/lanueva540';
 export const SLOGAN = '¡La Nueva 5:40, la radio que manda en el barrio!';
 
+export const ADMIN_PASSWORD = '540admin'; // Contraseña única de administración
+
 export const DEFAULT_HOURLY_SCRIPTS: string[] = [
     "¡Habla barrio! La música no para en la 5:40. Son las {hora}. ¡Súbele todo!",
     "¡Fuego en la cabina! Sintonía total en todo el Perú. Marcamos las {hora}.",

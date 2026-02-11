@@ -20,6 +20,8 @@ const SettingsView = lazy(() => import('./components/SettingsView'));
 import { GoogleGenAI, Modality } from "@google/genai";
 import { DEFAULT_HOURLY_SCRIPTS, DEFAULT_JINGLES, MOCK_EVENTS, RADIO_STREAM_URL } from './constants';
 import { decodeAudioData } from './utils/audioUtils';
+import { subscribeToRadioEvents, onRadioConnectionChange } from './services/supabase';
+import { generateGeminiSpeech, decodeGeminiAudio, playGeminiAudio } from './services/geminiTTSService';
 
 // --- TYPES ---
 interface NavItemProps {
@@ -54,8 +56,21 @@ const App: React.FC = () => {
   const [isDjAnnouncing, setIsDjAnnouncing] = useState(false);
   const [isDjThinking, setIsDjThinking] = useState(false);
   const [hasUpcomingEvents, setHasUpcomingEvents] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<string>('connecting');
   const lastAnnouncedMinute = useRef<number>(-1);
   const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const initAudio = useCallback(async () => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)({ sampleRate: 24000 });
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      await audioCtxRef.current.resume();
+    }
+    return audioCtxRef.current;
+  }, []);
+
+
 
   // Inicialización: Forzar señal principal al abrir la app
   useEffect(() => {
@@ -79,6 +94,74 @@ const App: React.FC = () => {
       window.removeEventListener('stop_radio_signal', handleStop);
     };
   }, []);
+
+  // Escuchar saludos en vivo (Global Broadcast)
+  useEffect(() => {
+    const handleGreeting = async (greeting: any) => {
+      console.log('🗣️ Reproduciendo saludo:', greeting);
+
+      // Feedback visual para el usuario (Overlay DJ AI)
+      setIsDjThinking(true);
+
+      // Construir texto (misma lógica que en la vista, idealmente centralizar)
+      const greetingText = greeting.message
+        ? `¡Tenemos un saludo! Para ${greeting.to}, de parte de ${greeting.from}. ${greeting.message}. ¡Un abrazo grande!`
+        : `¡Tenemos un saludo! Para ${greeting.to}, de parte de ${greeting.from}. ¡Un abrazo grande!`;
+
+      try {
+        // 1. Generar audio
+        const base64Audio = await generateGeminiSpeech(greetingText, 'Kore');
+        if (!base64Audio) {
+          setIsDjThinking(false);
+          return;
+        }
+
+        // 2. Inicializar contexto si es necesario
+        const ctx = await initAudio();
+        if (!ctx) {
+          setIsDjThinking(false);
+          return;
+        }
+
+        // 3. Decodificar
+        const buffer = await decodeGeminiAudio(base64Audio, ctx);
+        if (!buffer) {
+          setIsDjThinking(false);
+          return;
+        }
+
+        // 4. Reproducir (con ducking automático incluido en playGeminiAudio)
+        setIsDjThinking(false);
+        setIsDjAnnouncing(true); // Mostrar "AL AIRE"
+
+        playGeminiAudio(
+          buffer,
+          ctx,
+          undefined, // onStart
+          () => {    // onEnd
+            setIsDjAnnouncing(false);
+          }
+        );
+
+      } catch (err) {
+        console.error('Error playing greeting:', err);
+        setIsDjThinking(false);
+        setIsDjAnnouncing(false);
+      }
+    };
+
+    const unsubscribe = subscribeToRadioEvents(handleGreeting);
+    const unsubscribeStatus = onRadioConnectionChange((status) => {
+      setConnectionStatus(status);
+      if (status === 'SUBSCRIBED') console.log('✅ RADIO ONLINE');
+      if (status === 'LOCAL_MODE') console.log('⚠️ RADIO LOCAL MODE');
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeStatus();
+    };
+  }, [initAudio]);
 
   // Detectar URL secreta para panel de admin de saluditos
   useEffect(() => {
@@ -118,15 +201,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('radio_content_updated', checkUpcomingEvents);
   }, [checkUpcomingEvents]);
 
-  const initAudio = useCallback(async () => {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)({ sampleRate: 24000 });
-    }
-    if (audioCtxRef.current.state === 'suspended') {
-      await audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current;
-  }, []);
+
 
   const triggerAnnouncement = useCallback(async (type: 'hourly' | 'jingle', force = false) => {
     if (!isPlaying && !force) return;
@@ -241,8 +316,20 @@ const App: React.FC = () => {
           {activeTab !== NavTab.SHORTS && (
             <div className="lg:hidden flex items-center justify-center mb-6 glass-dark px-5 py-4 rounded-[2rem] sticky top-2 z-40 border border-white/10">
               <Logo className="w-28" />
+              <div className="absolute right-4 flex items-center gap-2">
+                <span className="text-[10px] uppercase font-bold text-slate-500 hidden sm:block">{connectionStatus.replace('_', ' ')}</span>
+                <div className={`w-3 h-3 rounded-full ${connectionStatus === 'SUBSCRIBED' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : connectionStatus === 'LOCAL_MODE' ? 'bg-yellow-500 shadow-[0_0_10px_#eab308]' : 'bg-red-500/50 animate-pulse'} transition-all`} title={`Estado: ${connectionStatus}`}></div>
+              </div>
             </div>
           )}
+
+          {/* Desktop Status Indicator */}
+          <div className="hidden lg:block fixed top-4 right-4 z-50">
+            <div className="glass-dark px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
+              <span className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">{connectionStatus === 'SUBSCRIBED' ? 'ONLINE' : connectionStatus.replace('_', ' ')}</span>
+              <div className={`w-2 h-2 rounded-full ${connectionStatus === 'SUBSCRIBED' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : connectionStatus === 'LOCAL_MODE' ? 'bg-yellow-500 shadow-[0_0_10px_#eab308]' : 'bg-red-500/50 animate-pulse'} transition-all`} title={`Estado: ${connectionStatus}`}></div>
+            </div>
+          </div>
 
           {activeTab === NavTab.HOME && <HomeView onPlayToggle={() => setIsPlaying(!isPlaying)} isPlaying={isPlaying} />}
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LiveGreeting } from '../types';
-import { GREETINGS_WHATSAPP } from '../constants';
+import { GREETINGS_WHATSAPP, ADMIN_PASSWORD } from '../constants';
 import { generateGeminiSpeech, decodeGeminiAudio, playGeminiAudio } from '../services/geminiTTSService';
+import { broadcastGreeting } from '../services/supabase';
 
 const LiveGreetingsView: React.FC = () => {
     const [greetings, setGreetings] = useState<LiveGreeting[]>([]);
@@ -9,8 +10,23 @@ const LiveGreetingsView: React.FC = () => {
     const [formData, setFormData] = useState({ from: '', to: '', message: '' });
     const [activeGreeting, setActiveGreeting] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
+
+    // Auth State
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [password, setPassword] = useState('');
+    const [authError, setAuthError] = useState(false);
+
     const audioCtxRef = useRef<AudioContext | null>(null);
     const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
+    const checkAuth = () => {
+        if (password === ADMIN_PASSWORD) {
+            setIsAuthenticated(true);
+            setAuthError(false);
+        } else {
+            setAuthError(true);
+        }
+    };
 
     useEffect(() => {
         const saved = localStorage.getItem('radio_greetings');
@@ -62,41 +78,31 @@ const LiveGreetingsView: React.FC = () => {
             : `¡Tenemos un saludo! Para ${greeting.to}, de parte de ${greeting.from}. ¡Un abrazo grande!`;
 
         try {
-            const base64Audio = await generateGeminiSpeech(greetingText, 'Kore');
+            // EN LUGAR DE REPRODUCIR LOCALMENTE, HACEMOS BROADCAST
+            setIsGenerating(true);
 
-            if (base64Audio && audioCtxRef.current) {
-                setIsGenerating(false);
+            // 1. Actualizar estado local a "reading" para feedback inmediato
+            setGreetings(greetings.map(g =>
+                g.id === greeting.id ? { ...g, status: 'reading' } : g
+            ));
 
-                // Actualizar estado a "reading"
+            // 2. Transmitir a todos los oyentes (incluido este admin si escucha la radio por app)
+            await broadcastGreeting(greeting);
+
+            // 3. Simular tiempo de lectura para UX del admin y luego marcar como completado
+            setTimeout(() => {
                 setGreetings(greetings.map(g =>
-                    g.id === greeting.id ? { ...g, status: 'reading' } : g
+                    g.id === greeting.id ? { ...g, status: 'completed' } : g
                 ));
-
-                const audioBuffer = await decodeGeminiAudio(base64Audio, audioCtxRef.current);
-                if (audioBuffer) {
-                    const source = playGeminiAudio(
-                        audioBuffer,
-                        audioCtxRef.current,
-                        undefined,
-                        () => {
-                            // Marcar como completado
-                            setGreetings(greetings.map(g =>
-                                g.id === greeting.id ? { ...g, status: 'completed' } : g
-                            ));
-                            setActiveGreeting(null);
-                        }
-                    );
-                    audioSourceRef.current = source;
-                }
-            } else {
-                setIsGenerating(false);
                 setActiveGreeting(null);
-                alert('⚠️ Necesitas configurar la API key de Gemini para usar la voz AI.');
-            }
+                setIsGenerating(false);
+            }, 10000); // 10 segundos aprox de espera visual
+
         } catch (error) {
-            console.error('Error generando voz:', error);
+            console.error('Error broadcasting greeting:', error);
             setIsGenerating(false);
             setActiveGreeting(null);
+            alert('Error al transmitir saludo');
         }
     };
 
@@ -162,172 +168,215 @@ const LiveGreetingsView: React.FC = () => {
                 </div>
             </header>
 
-            {/* STATS */}
-            <div className="grid grid-cols-2 gap-4">
-                <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all"></div>
-                    <div className="relative text-center p-6 glass-dark rounded-3xl border border-white/10 backdrop-blur-xl">
-                        <p className="text-4xl font-black bg-gradient-to-br from-yellow-400 to-orange-400 bg-clip-text text-transparent">{pendingGreetings.length}</p>
-                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mt-2">Pendientes</p>
+            {!isAuthenticated ? (
+                <div className="max-w-md mx-auto glass-dark p-8 rounded-3xl border border-white/10 text-center space-y-6">
+                    <div className="w-16 h-16 bg-[#a3cf33]/20 rounded-full flex items-center justify-center mx-auto">
+                        <i className="fa-solid fa-lock text-2xl text-[#a3cf33]"></i>
+                    </div>
+                    <h2 className="text-2xl font-black text-white uppercase">Acceso Restringido</h2>
+                    <p className="text-slate-400 text-sm">Ingresa la contraseña para administrar los saludos en vivo.</p>
+
+                    <div className="space-y-4">
+                        <input
+                            type="password"
+                            placeholder="Contraseña..."
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-center text-white placeholder-slate-600 focus:outline-none focus:border-[#a3cf33] transition-all text-lg tracking-widest"
+                        />
+                        {authError && <p className="text-red-500 text-xs font-bold uppercase animate-pulse">Contraseña Incorrecta</p>}
+
+                        <button
+                            onClick={checkAuth}
+                            className="w-full py-4 bg-white text-black font-black rounded-2xl text-sm uppercase tracking-widest hover:bg-[#a3cf33] transition-all"
+                        >
+                            Ingresar
+                        </button>
                     </div>
                 </div>
+            ) : (
+                <>
+                    {/* ADMIN PANEL */}
 
-                <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all"></div>
-                    <div className="relative text-center p-6 glass-dark rounded-3xl border border-white/10 backdrop-blur-xl">
-                        <p className="text-4xl font-black bg-gradient-to-br from-green-400 to-emerald-400 bg-clip-text text-transparent">{todayCompleted.length}</p>
-                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mt-2">Leídos Hoy</p>
+                    {/* ON AIR INDICATOR */}
+                    {activeGreeting && (
+                        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 animate-bounce">
+                            <div className="bg-red-600 text-white px-8 py-3 rounded-full font-black text-xl shadow-[0_0_50px_rgba(220,38,38,0.8)] border-4 border-white/20 flex items-center gap-4 uppercase tracking-widest">
+                                <span className="w-4 h-4 bg-white rounded-full animate-ping"></span>
+                                DJ 5:40 AL AIRE
+                                <i className="fa-solid fa-tower-broadcast animate-pulse"></i>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STATS */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all"></div>
+                            <div className="relative text-center p-6 glass-dark rounded-3xl border border-white/10 backdrop-blur-xl">
+                                <p className="text-4xl font-black bg-gradient-to-br from-yellow-400 to-orange-400 bg-clip-text text-transparent">{pendingGreetings.length}</p>
+                                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mt-2">Pendientes</p>
+                            </div>
+                        </div>
+
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all"></div>
+                            <div className="relative text-center p-6 glass-dark rounded-3xl border border-white/10 backdrop-blur-xl">
+                                <p className="text-4xl font-black bg-gradient-to-br from-green-400 to-emerald-400 bg-clip-text text-transparent">{todayCompleted.length}</p>
+                                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mt-2">Leídos Hoy</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {/* NUEVO SALUDO */}
-            <button
-                onClick={() => setShowForm(!showForm)}
-                className="w-full py-5 bg-gradient-to-r from-[#a3cf33] to-green-400 text-black font-black rounded-2xl text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-105 transition-all"
-            >
-                <i className={`fa-solid ${showForm ? 'fa-xmark' : 'fa-plus'} text-xl`}></i>
-                {showForm ? 'Cancelar' : 'Nuevo Saludo Manual'}
-            </button>
-
-            {showForm && (
-                <div className="glass-dark rounded-3xl p-6 border border-white/10 backdrop-blur-xl space-y-4 animate-scaleIn">
-                    <input
-                        type="text"
-                        placeholder="De parte de..."
-                        value={formData.from}
-                        onChange={(e) => setFormData({ ...formData, from: e.target.value })}
-                        className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-[#a3cf33] transition-all"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Para..."
-                        value={formData.to}
-                        onChange={(e) => setFormData({ ...formData, to: e.target.value })}
-                        className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-[#a3cf33] transition-all"
-                    />
-                    <textarea
-                        placeholder="Mensaje (opcional)..."
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        rows={3}
-                        className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-[#a3cf33] transition-all resize-none"
-                    />
+                    {/* NUEVO SALUDO */}
                     <button
-                        onClick={addGreeting}
-                        className="w-full py-4 bg-gradient-to-r from-[#a3cf33] to-green-400 text-black font-black rounded-2xl text-sm uppercase tracking-widest hover:scale-105 transition-all"
+                        onClick={() => setShowForm(!showForm)}
+                        className="w-full py-5 bg-gradient-to-r from-[#a3cf33] to-green-400 text-black font-black rounded-2xl text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-105 transition-all"
                     >
-                        <i className="fa-solid fa-check mr-2"></i>
-                        Agregar Saludo
+                        <i className={`fa-solid ${showForm ? 'fa-xmark' : 'fa-plus'} text-xl`}></i>
+                        {showForm ? 'Cancelar' : 'Nuevo Saludo Manual'}
                     </button>
-                </div>
-            )}
 
-            {/* PENDIENTES */}
-            {pendingGreetings.length > 0 && (
-                <div className="space-y-4">
-                    <h2 className="text-2xl font-black text-[#a3cf33] uppercase flex items-center gap-3">
-                        <i className="fa-solid fa-hourglass-half"></i>
-                        Pendientes ({pendingGreetings.length})
-                    </h2>
-
-                    {pendingGreetings.map((greeting) => (
-                        <div
-                            key={greeting.id}
-                            className={`glass-dark rounded-3xl p-6 border transition-all ${activeGreeting === greeting.id
-                                ? 'border-[#a3cf33] scale-105 shadow-lg shadow-[#a3cf33]/30'
-                                : 'border-white/10 hover:border-white/20'
-                                }`}
-                        >
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-2 text-[#a3cf33] font-bold">
-                                        <i className="fa-solid fa-arrow-right"></i>
-                                        <span>Para: {greeting.to}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                                        <i className="fa-solid fa-user"></i>
-                                        <span>De: {greeting.from}</span>
-                                    </div>
-                                    {greeting.message && (
-                                        <p className="text-slate-300 text-sm italic pl-6">"{greeting.message}"</p>
-                                    )}
-                                </div>
-
-                                <div className="flex gap-2">
-                                    {activeGreeting === greeting.id ? (
-                                        <button
-                                            onClick={stopReading}
-                                            className="px-6 py-3 bg-red-500 text-white font-black rounded-xl text-xs uppercase hover:bg-red-600 transition-all flex items-center gap-2"
-                                        >
-                                            <i className="fa-solid fa-stop"></i>
-                                            {isGenerating ? 'Generando...' : 'Detener'}
-                                        </button>
-                                    ) : (
-                                        <>
-                                            <button
-                                                onClick={() => readGreeting(greeting)}
-                                                className="px-6 py-3 bg-gradient-to-r from-[#a3cf33] to-green-400 text-black font-black rounded-xl text-xs uppercase hover:scale-105 transition-all flex items-center gap-2"
-                                            >
-                                                <i className="fa-solid fa-microphone-lines"></i>
-                                                Leer
-                                            </button>
-                                            <button
-                                                onClick={() => rejectGreeting(greeting.id)}
-                                                className="px-4 py-3 bg-white/10 text-slate-400 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-all"
-                                            >
-                                                <i className="fa-solid fa-xmark"></i>
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
+                    {showForm && (
+                        <div className="glass-dark rounded-3xl p-6 border border-white/10 backdrop-blur-xl space-y-4 animate-scaleIn">
+                            <input
+                                type="text"
+                                placeholder="De parte de..."
+                                value={formData.from}
+                                onChange={(e) => setFormData({ ...formData, from: e.target.value })}
+                                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-[#a3cf33] transition-all"
+                            />
+                            <input
+                                type="text"
+                                placeholder="Para..."
+                                value={formData.to}
+                                onChange={(e) => setFormData({ ...formData, to: e.target.value })}
+                                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-[#a3cf33] transition-all"
+                            />
+                            <textarea
+                                placeholder="Mensaje (opcional)..."
+                                value={formData.message}
+                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                rows={3}
+                                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-[#a3cf33] transition-all resize-none"
+                            />
+                            <button
+                                onClick={addGreeting}
+                                className="w-full py-4 bg-gradient-to-r from-[#a3cf33] to-green-400 text-black font-black rounded-2xl text-sm uppercase tracking-widest hover:scale-105 transition-all"
+                            >
+                                <i className="fa-solid fa-check mr-2"></i>
+                                Agregar Saludo
+                            </button>
                         </div>
-                    ))}
-                </div>
-            )}
+                    )}
 
-            {/* COMPLETADOS HOY */}
-            {todayCompleted.length > 0 && (
-                <div className="space-y-4">
-                    <h2 className="text-2xl font-black text-green-400 uppercase flex items-center gap-3">
-                        <i className="fa-solid fa-check-circle"></i>
-                        Leídos Hoy ({todayCompleted.length})
-                    </h2>
+                    {/* PENDIENTES */}
+                    {pendingGreetings.length > 0 && (
+                        <div className="space-y-4">
+                            <h2 className="text-2xl font-black text-[#a3cf33] uppercase flex items-center gap-3">
+                                <i className="fa-solid fa-hourglass-half"></i>
+                                Pendientes ({pendingGreetings.length})
+                            </h2>
 
-                    {todayCompleted.map((greeting) => (
-                        <div
-                            key={greeting.id}
-                            className="glass-dark rounded-3xl p-4 border border-white/5 opacity-60 hover:opacity-100 transition-all"
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1 space-y-1">
-                                    <div className="flex items-center gap-2 text-green-400 text-sm font-bold">
-                                        <i className="fa-solid fa-check"></i>
-                                        <span>Para: {greeting.to} (de {greeting.from})</span>
-                                    </div>
-                                    {greeting.message && (
-                                        <p className="text-slate-400 text-xs pl-6">"{greeting.message}"</p>
-                                    )}
-                                </div>
-                                <button
-                                    onClick={() => deleteGreeting(greeting.id)}
-                                    className="px-3 py-2 text-slate-600 hover:text-red-400 transition-all"
+                            {pendingGreetings.map((greeting) => (
+                                <div
+                                    key={greeting.id}
+                                    className={`glass-dark rounded-3xl p-6 border transition-all ${activeGreeting === greeting.id
+                                        ? 'border-[#a3cf33] scale-105 shadow-lg shadow-[#a3cf33]/30'
+                                        : 'border-white/10 hover:border-white/20'
+                                        }`}
                                 >
-                                    <i className="fa-solid fa-trash text-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1 space-y-2">
+                                            <div className="flex items-center gap-2 text-[#a3cf33] font-bold">
+                                                <i className="fa-solid fa-arrow-right"></i>
+                                                <span>Para: {greeting.to}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-slate-400 text-sm">
+                                                <i className="fa-solid fa-user"></i>
+                                                <span>De: {greeting.from}</span>
+                                            </div>
+                                            {greeting.message && (
+                                                <p className="text-slate-300 text-sm italic pl-6">"{greeting.message}"</p>
+                                            )}
+                                        </div>
 
-            {greetings.length === 0 && (
-                <div className="text-center py-20 glass-dark rounded-[3rem] border border-white/5 backdrop-blur-xl">
-                    <i className="fa-solid fa-heart text-6xl text-slate-700 mb-6"></i>
-                    <p className="text-slate-500 text-base font-bold mb-4">No hay saludos todavía</p>
-                    <p className="text-slate-600 text-sm">Agrega uno manualmente o espera a que lleguen por WhatsApp</p>
-                </div>
+                                        <div className="flex gap-2">
+                                            {activeGreeting === greeting.id ? (
+                                                <button
+                                                    onClick={stopReading}
+                                                    className="px-6 py-3 bg-red-500 text-white font-black rounded-xl text-xs uppercase hover:bg-red-600 transition-all flex items-center gap-2"
+                                                >
+                                                    <i className="fa-solid fa-stop"></i>
+                                                    {isGenerating ? 'Generando...' : 'Detener'}
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => readGreeting(greeting)}
+                                                        className="px-6 py-3 bg-gradient-to-r from-[#a3cf33] to-green-400 text-black font-black rounded-xl text-xs uppercase hover:scale-105 transition-all flex items-center gap-2"
+                                                    >
+                                                        <i className="fa-solid fa-microphone-lines"></i>
+                                                        Leer
+                                                    </button>
+                                                    <button
+                                                        onClick={() => rejectGreeting(greeting.id)}
+                                                        className="px-4 py-3 bg-white/10 text-slate-400 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-all"
+                                                    >
+                                                        <i className="fa-solid fa-xmark"></i>
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* COMPLETADOS HOY */}
+                    {todayCompleted.length > 0 && (
+                        <div className="space-y-4">
+                            <h2 className="text-2xl font-black text-green-400 uppercase flex items-center gap-3">
+                                <i className="fa-solid fa-check-circle"></i>
+                                Leídos Hoy ({todayCompleted.length})
+                            </h2>
+
+                            {todayCompleted.map((greeting) => (
+                                <div
+                                    key={greeting.id}
+                                    className="glass-dark rounded-3xl p-4 border border-white/5 opacity-60 hover:opacity-100 transition-all"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1 space-y-1">
+                                            <div className="flex items-center gap-2 text-green-400 text-sm font-bold">
+                                                <i className="fa-solid fa-check"></i>
+                                                <span>Para: {greeting.to} (de {greeting.from})</span>
+                                            </div>
+                                            {greeting.message && (
+                                                <p className="text-slate-400 text-xs pl-6">"{greeting.message}"</p>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => deleteGreeting(greeting.id)}
+                                            className="px-3 py-2 text-slate-600 hover:text-red-400 transition-all"
+                                        >
+                                            <i className="fa-solid fa-trash text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {greetings.length === 0 && (
+                        <div className="text-center py-20 glass-dark rounded-[3rem] border border-white/5 backdrop-blur-xl">
+                            <i className="fa-solid fa-heart text-6xl text-slate-700 mb-6"></i>
+                            <p className="text-slate-500 text-base font-bold mb-4">No hay saludos todavía</p>
+                            <p className="text-slate-600 text-sm">Agrega uno manualmente o espera a que lleguen por WhatsApp</p>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

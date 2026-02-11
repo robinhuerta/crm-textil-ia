@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { NavTab } from '../types';
+import { ADMIN_PASSWORD } from '../constants';
 
 const SettingsView: React.FC = () => {
     const [isUnlocked, setIsUnlocked] = useState(false);
-    const [pin, setPin] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-
-    const ADMIN_PIN = '5540'; // PIN: 5540
 
     const handleUnlock = (e: React.FormEvent) => {
         e.preventDefault();
-        if (pin === ADMIN_PIN) {
+        if (password === ADMIN_PASSWORD) {
             setIsUnlocked(true);
             setError('');
             localStorage.setItem('settings_unlocked', 'true');
         } else {
-            setError('PIN incorrecto');
-            setPin('');
+            setError('Contraseña incorrecta');
+            setPassword('');
         }
     };
 
@@ -51,7 +50,7 @@ const SettingsView: React.FC = () => {
                                 Panel Admin
                             </h2>
                             <p className="text-slate-400 text-sm">
-                                Ingresa el PIN de 4 dígitos
+                                Ingresa la contraseña de administrador
                             </p>
                         </div>
 
@@ -59,12 +58,10 @@ const SettingsView: React.FC = () => {
                         <form onSubmit={handleUnlock} className="space-y-4">
                             <input
                                 type="password"
-                                inputMode="numeric"
-                                maxLength={4}
-                                value={pin}
-                                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                                placeholder="••••"
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center text-white text-3xl font-bold tracking-[0.5em] focus:outline-none focus:border-[#a3cf33] transition-colors"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Contraseña..."
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center text-white text-xl font-bold tracking-widest focus:outline-none focus:border-[#a3cf33] transition-colors"
                                 autoFocus
                             />
 
@@ -79,7 +76,7 @@ const SettingsView: React.FC = () => {
 
                             <button
                                 type="submit"
-                                disabled={pin.length !== 4}
+                                disabled={!password}
                                 className="w-full bg-gradient-to-r from-[#a3cf33] to-yellow-400 text-slate-900 font-black py-4 rounded-2xl uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 Desbloquear
@@ -88,7 +85,7 @@ const SettingsView: React.FC = () => {
 
                         {/* Hint */}
                         <p className="text-center text-slate-600 text-xs">
-                            Contacta al administrador si olvidaste el PIN
+                            Contacta al administrador si olvidaste la contraseña
                         </p>
                     </div>
                 </div>
@@ -216,7 +213,7 @@ const SettingsView: React.FC = () => {
                     onClick={() => {
                         localStorage.removeItem('settings_unlocked');
                         setIsUnlocked(false);
-                        setPin('');
+                        setPassword('');
                     }}
                     className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-slate-400 hover:text-white text-sm font-bold uppercase tracking-widest transition-all"
                 >

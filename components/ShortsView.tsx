@@ -59,144 +59,19 @@ const ShortsView: React.FC = () => {
   const wasPlayingRef = useRef(false);
   const [showBirthdays, setShowBirthdays] = useState(true);
 
-  // Estados para Text-to-Speech
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [activeDialogue, setActiveDialogue] = useState(-1);
-  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
-
   // Estados para Gemini AI Voice (más profesional)
   const [isGeminiSpeaking, setIsGeminiSpeaking] = useState(false);
   const [isGeminiThinking, setIsGeminiThinking] = useState(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const [activeDialogue, setActiveDialogue] = useState(-1);
 
   const loadShorts = () => {
     const saved = localStorage.getItem('radio_shorts');
     setShorts(saved ? JSON.parse(saved) : MOCK_SHORTS);
   };
 
-  // Función para obtener voz masculina o femenina en español latinoamericano
-  const getLatinVoice = (preferFemale: boolean = false): SpeechSynthesisVoice | null => {
-    const voices = window.speechSynthesis.getVoices();
 
-    // Prioridad de voces latinoamericanas (más cercanas al acento peruano)
-    const latinLocales = ['es-MX', 'es-PE', 'es-CO', 'es-AR', 'es-CL', 'es-419', 'es-US', 'es-ES'];
-
-    // Nombres comunes de voces femeninas
-    const femaleNames = ['female', 'paulina', 'maria', 'mónica', 'monica', 'elena', 'laura', 'carmen', 'rosa', 'lucia', 'francisca', 'angelica', 'sabina', 'helena', 'penelope'];
-    // Nombres comunes de voces masculinas
-    const maleNames = ['male', 'jorge', 'juan', 'carlos', 'diego', 'pablo', 'miguel', 'andres', 'antonio', 'pedro', 'enrique', 'rodriguez'];
-
-    // Buscar voz del género correcto en idioma latinoamericano
-    for (const locale of latinLocales) {
-      const matchingVoices = voices.filter(v => v.lang === locale);
-
-      for (const voice of matchingVoices) {
-        const nameLower = voice.name.toLowerCase();
-        if (preferFemale) {
-          // Buscar voz femenina
-          if (femaleNames.some(fn => nameLower.includes(fn))) return voice;
-        } else {
-          // Buscar voz masculina
-          if (maleNames.some(mn => nameLower.includes(mn))) return voice;
-        }
-      }
-    }
-
-    // Si no encontró del género específico, buscar cualquier español del género opuesto
-    const allSpanish = voices.filter(v => v.lang.startsWith('es'));
-    for (const voice of allSpanish) {
-      const nameLower = voice.name.toLowerCase();
-      if (preferFemale && femaleNames.some(fn => nameLower.includes(fn))) return voice;
-      if (!preferFemale && maleNames.some(mn => nameLower.includes(mn))) return voice;
-    }
-
-    // Fallback: devolver cualquier voz en español
-    return allSpanish.length > 0 ? allSpanish[preferFemale ? 1 : 0] || allSpanish[0] : null;
-  };
-
-  // Función para leer los diálogos con voces estilo locutor peruano
-  const speakDialogues = (dialogues: { speaker: string; text: string }[]) => {
-    if ('speechSynthesis' in window) {
-      // Cancelar cualquier lectura anterior
-      window.speechSynthesis.cancel();
-
-      // Esperar a que las voces estén disponibles
-      const startSpeaking = () => {
-        let currentIndex = 0;
-
-        const speakNext = () => {
-          if (currentIndex < dialogues.length) {
-            setActiveDialogue(currentIndex);
-            const dialogue = dialogues[currentIndex];
-            const utterance = new SpeechSynthesisUtterance(dialogue.text);
-
-            // Obtener voz latinoamericana
-            const voice = getLatinVoice(dialogue.speaker === 'dj2');
-            if (voice) {
-              utterance.voice = voice;
-              utterance.lang = voice.lang;
-            } else {
-              utterance.lang = 'es-MX'; // Fallback a español mexicano
-            }
-
-            // Configuración estilo locutor de radio peruano CON EMOCIÓN
-            if (dialogue.speaker === 'dj1') {
-              // DJ Principal: voz POTENTE y ENÉRGICA
-              utterance.rate = 1.45; // ¡Más rápido y eufórico!
-              utterance.pitch = 1.1; // Más expresivo
-              utterance.volume = 1.0;
-            } else {
-              // DJ Asistente: voz MUY alegre y animada
-              utterance.rate = 1.50; // ¡Super animada!
-              utterance.pitch = 1.35; // Voz más aguda y festiva
-              utterance.volume = 1.0;
-            }
-
-            utterance.onend = () => {
-              currentIndex++;
-              if (currentIndex < dialogues.length) {
-                setTimeout(speakNext, 400); // Pausa corta ¡más dinámico!
-              } else {
-                setIsSpeaking(false);
-                setActiveDialogue(-1);
-              }
-            };
-
-            speechRef.current = utterance;
-            window.speechSynthesis.speak(utterance);
-          }
-        };
-
-        setIsSpeaking(true);
-
-        // Enfoque simple: iniciar directamente (sin warmup complejo)
-        // El prefijo "¡Ey ey!" suena natural como intro de DJ y absorbe el corte
-        setTimeout(speakNext, 100);
-      };
-
-      // Las voces pueden no estar disponibles inmediatamente
-      if (window.speechSynthesis.getVoices().length > 0) {
-        startSpeaking();
-      } else {
-        window.speechSynthesis.onvoiceschanged = startSpeaking;
-      }
-    }
-  };
-
-  const stopSpeaking = () => {
-    window.speechSynthesis.cancel();
-    setIsSpeaking(false);
-    setActiveDialogue(-1);
-  };
-
-  const toggleSpeech = (dialogues: { speaker: string; text: string }[]) => {
-    if (isSpeaking) {
-      stopSpeaking();
-    } else {
-      speakDialogues(dialogues);
-    }
-  };
 
   // Nueva función: Generar y reproducir anuncios con voz AI de Gemini
   const speakWithGemini = async (dialogues: { speaker: string; text: string }[]) => {
@@ -205,11 +80,17 @@ const ShortsView: React.FC = () => {
       return;
     }
 
-    if (!audioCtxRef.current) {
+    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
       audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     }
+
+    // Resume context if suspended (crucial for mobile)
     if (audioCtxRef.current.state === 'suspended') {
-      await audioCtxRef.current.resume();
+      try {
+        await audioCtxRef.current.resume();
+      } catch (e) {
+        console.error("Error resuming audio context:", e);
+      }
     }
 
     setIsGeminiThinking(true);

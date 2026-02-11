@@ -111,3 +111,119 @@ export function getTimeRemaining(endsAt: string): { hours: number; minutes: numb
 
     return { hours, minutes, seconds, expired: false };
 }
+
+// --- REALTIME RADIO EVENTS (GREETINGS) ---
+
+export const RADIO_EVENTS_CHANNEL = 'radio-global-live-v1';
+
+// Fallback Local (BroadcastChannel API - Native Browser)
+const localChannel = new BroadcastChannel('radio-local-fallback');
+
+// Canal único global
+let radioChannel: ReturnType<typeof supabase.channel> | null = null;
+let listeners: ((payload: any) => void)[] = [];
+let statusListeners: ((status: string) => void)[] = [];
+
+// Notificar estado a la UI
+const notifyStatus = (status: string) => {
+    console.log(`📡 [RadioConnection] Status: ${status}`);
+    statusListeners.forEach(l => l(status));
+};
+
+// Escuchar canal local (Fallback)
+localChannel.onmessage = (event) => {
+    console.log('📡 [Local Mode] Message received:', event.data);
+    if (event.data?.type === 'broadcast' && event.data?.event === 'live_greeting') {
+        listeners.forEach(cb => cb(event.data.payload));
+    }
+};
+
+// Inicializar canal (Singleton)
+const getChannel = () => {
+    if (radioChannel) return radioChannel;
+
+    console.log('📡 [RadioConnection] Initializing Supabase channel...');
+    radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL, {
+        config: {
+            broadcast: { self: true },
+            presence: { key: 'radio-listener' },
+        }
+    });
+
+    radioChannel
+        .on('broadcast', { event: 'live_greeting' }, (payload) => {
+            console.log('📡 [RadioConnection] Event received:', payload);
+            listeners.forEach(cb => cb(payload.payload));
+        })
+        .subscribe((status, err) => {
+            notifyStatus(status);
+
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                console.error('❌ [RadioConnection] Connection failed:', status, err);
+                notifyStatus('LOCAL_MODE'); // Avisar a la UI que estamos en modo local
+            }
+        });
+
+    return radioChannel;
+};
+
+// Enviar saludo
+export const broadcastGreeting = async (greeting: any) => {
+    const channel = getChannel();
+
+    // 1. Intentar enviar por Supabase (Si está conectado)
+    let sentViaSupabase = false;
+    if (channel.state === 'joined') {
+        const resp = await channel.send({
+            type: 'broadcast',
+            event: 'live_greeting',
+            payload: greeting
+        });
+        if (resp === 'ok') sentViaSupabase = true;
+    }
+
+    // 2. SIEMPRE enviar por canal local también (para testing robusto entre pestañas)
+    // El receptor debe manejar duplicados si ambos llegan, pero mejor que sobre a que falte en testing.
+    console.log('📡 [Local Mode] Broadcasting via fallback channel...');
+    localChannel.postMessage({
+        type: 'broadcast',
+        event: 'live_greeting',
+        payload: greeting
+    });
+
+    // 3. Feedback
+    if (sentViaSupabase) {
+        console.log('✅ [RadioConnection] Sent via Supabase');
+    } else {
+        console.warn('⚠️ [RadioConnection] Supabase failed, sent via Local Fallback only');
+        notifyStatus('LOCAL_MODE');
+    }
+};
+
+// Suscribirse (UI)
+export const subscribeToRadioEvents = (callback: (payload: any) => void) => {
+    listeners.push(callback);
+    getChannel();
+    return () => {
+        listeners = listeners.filter(l => l !== callback);
+    };
+};
+
+// Hook de estado (UI)
+export const onRadioConnectionChange = (callback: (status: string) => void) => {
+    statusListeners.push(callback);
+    // Estado inicial
+    if (radioChannel) {
+        if (radioChannel.state === 'closed' || radioChannel.state === 'errored') {
+            callback('LOCAL_MODE');
+        } else {
+            callback(radioChannel.state);
+        }
+    } else {
+        callback('CONNECTING');
+    }
+
+    return () => {
+        statusListeners = statusListeners.filter(l => l !== callback);
+    };
+};
