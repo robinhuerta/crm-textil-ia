@@ -57,6 +57,7 @@ const App: React.FC = () => {
   const [isDjThinking, setIsDjThinking] = useState(false);
   const [hasUpcomingEvents, setHasUpcomingEvents] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string>('connecting');
+  const [connectionDetails, setConnectionDetails] = useState<string>('');
   const lastAnnouncedMinute = useRef<number>(-1);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -151,10 +152,11 @@ const App: React.FC = () => {
     };
 
     const unsubscribe = subscribeToRadioEvents(handleGreeting);
-    const unsubscribeStatus = onRadioConnectionChange((status) => {
+    const unsubscribeStatus = onRadioConnectionChange((status, details) => {
       setConnectionStatus(status);
+      setConnectionDetails(details || '');
       if (status === 'SUBSCRIBED') console.log('✅ RADIO ONLINE');
-      if (status === 'LOCAL_MODE') console.log('⚠️ RADIO LOCAL MODE');
+      if (status === 'LOCAL_MODE') console.log('⚠️ RADIO LOCAL MODE', details);
     });
 
     return () => {
@@ -317,17 +319,39 @@ const App: React.FC = () => {
             <div className="lg:hidden flex items-center justify-center mb-6 glass-dark px-5 py-4 rounded-[2rem] sticky top-2 z-40 border border-white/10">
               <Logo className="w-28" />
               <div className="absolute right-4 flex items-center gap-2">
-                <span className="text-[10px] uppercase font-bold text-slate-500 hidden sm:block">{connectionStatus.replace('_', ' ')}</span>
-                <div className={`w-3 h-3 rounded-full ${connectionStatus === 'SUBSCRIBED' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : connectionStatus === 'LOCAL_MODE' ? 'bg-yellow-500 shadow-[0_0_10px_#eab308]' : 'bg-red-500/50 animate-pulse'} transition-all`} title={`Estado: ${connectionStatus}`}></div>
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 hidden sm:block">{connectionStatus === 'SUBSCRIBED' ? 'ONLINE' : connectionStatus.replace('_', ' ')}</span>
+                  {connectionDetails && <span className="text-[8px] text-red-500 font-medium max-w-[100px] truncate">{connectionDetails}</span>}
+                </div>
+                <div
+                  className={`w-3 h-3 rounded-full cursor-pointer ${connectionStatus === 'SUBSCRIBED' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : connectionStatus === 'LOCAL_MODE' ? 'bg-yellow-500 shadow-[0_0_10px_#eab308]' : 'bg-red-500/50 animate-pulse'} transition-all`}
+                  title={`Estado: ${connectionStatus} ${connectionDetails}`}
+                  onClick={() => {
+                    import('./services/supabase').then(m => m.forceReconnect());
+                  }}
+                ></div>
               </div>
             </div>
           )}
 
           {/* Desktop Status Indicator */}
           <div className="hidden lg:block fixed top-4 right-4 z-50">
-            <div className="glass-dark px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-              <span className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">{connectionStatus === 'SUBSCRIBED' ? 'ONLINE' : connectionStatus.replace('_', ' ')}</span>
-              <div className={`w-2 h-2 rounded-full ${connectionStatus === 'SUBSCRIBED' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : connectionStatus === 'LOCAL_MODE' ? 'bg-yellow-500 shadow-[0_0_10px_#eab308]' : 'bg-red-500/50 animate-pulse'} transition-all`} title={`Estado: ${connectionStatus}`}></div>
+            <div className="glass-dark px-3 py-1.5 rounded-xl flex flex-col items-end gap-1 border border-white/10 min-w-[120px]">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">{connectionStatus === 'SUBSCRIBED' ? 'ONLINE' : connectionStatus.replace('_', ' ')}</span>
+                <div
+                  className={`w-2 h-2 rounded-full cursor-pointer ${connectionStatus === 'SUBSCRIBED' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : connectionStatus === 'LOCAL_MODE' ? 'bg-yellow-500 shadow-[0_0_10px_#eab308]' : 'bg-red-500/50 animate-pulse'} transition-all`}
+                  title="Click para reintentar conexión"
+                  onClick={() => {
+                    import('./services/supabase').then(m => m.forceReconnect());
+                  }}
+                ></div>
+              </div>
+              {connectionDetails && (
+                <div className="text-[8px] text-red-500/70 font-mono text-right max-w-[200px] break-words">
+                  {connectionDetails}
+                </div>
+              )}
             </div>
           </div>
 

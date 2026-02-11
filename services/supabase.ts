@@ -3,8 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://zplvreuiuosmmeoaeaz.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbHZyZXVpdW9zbW1lb2VhZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NDc1MDcsImV4cCI6MjA4NTIyMzUwN30.NZE9qW4rKuZ_GZ2Xu2W3qo_vnKwO1Tud6OOAypnRg14';
 
-// Cliente estandar
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Cliente con timeout extendido
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    realtime: {
+        timeout: 30000, // 30 segundos
+        params: {
+            eventsPerSecond: 10,
+        }
+    }
+});
 
 // Types for polls
 export interface Poll {
@@ -41,16 +48,16 @@ export async function voteForOption(pollId: number, option: string): Promise<boo
 }
 
 // --- REALTIME RADIO EVENTS ---
-export const RADIO_EVENTS_CHANNEL = 'radio_broadcast_v10'; // Nuevo canal para evitar cache de error
+export const RADIO_EVENTS_CHANNEL = 'radio_broadcast_v11';
 
 let radioChannel: any = null;
 let listeners: ((payload: any) => void)[] = [];
-let statusListeners: ((status: string, error?: any) => void)[] = [];
+let statusListeners: ((status: string, details?: string) => void)[] = [];
 let retryCount = 0;
 
-const notifyStatus = (status: string, error?: any) => {
-    console.log(`📡 [RadioStatus] ${status}`, error || '');
-    statusListeners.forEach(l => l(status, error));
+const notifyStatus = (status: string, details?: string) => {
+    console.log(`📡 [RadioStatus] ${status} ${details || ''}`);
+    statusListeners.forEach(l => l(status, details));
 };
 
 const localChannel = typeof window !== 'undefined' ? new BroadcastChannel('radio-local-fallback') : null;
@@ -63,45 +70,45 @@ if (localChannel) {
     };
 }
 
-// Inicializar canal robusto
+// Inicializar canal
 export const setupRadioChannel = () => {
-    if (radioChannel && (radioChannel.state === 'joined' || radioChannel.state === 'joining')) {
-        return radioChannel;
-    }
+    // Si ya estamos suscritos de verdad, no hacer nada
+    if (radioChannel && radioChannel.state === 'joined') return radioChannel;
 
     if (radioChannel) {
+        console.log('🧹 Eliminando canal previo...');
         supabase.removeChannel(radioChannel);
     }
 
     console.log(`📡 [Radio] Conectando a ${RADIO_EVENTS_CHANNEL}...`);
 
-    // Canal simple con broadcast
     radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL, {
-        config: {
-            broadcast: { self: true }
-        }
+        config: { broadcast: { self: true } }
     });
 
     radioChannel
         .on('broadcast', { event: 'live_greeting' }, (payload: any) => {
-            console.log('🗣️ [Radio] Saludo recibido globalmente');
+            console.log('🗣️ [Radio] Saludo recibido');
             listeners.forEach(cb => cb(payload.payload));
         })
         .subscribe((status: string, err: any) => {
-            notifyStatus(status, err);
+            let errorMsg = '';
+            if (err) {
+                errorMsg = err.message || JSON.stringify(err);
+            }
+
+            notifyStatus(status, errorMsg);
 
             if (status === 'SUBSCRIBED') {
                 console.log('✅ RADIO ONLINE');
                 retryCount = 0;
-            } else {
-                console.warn(`⚠️ [Radio] Estado: ${status}`, err || '');
-                // Fallback a local si falla lo global
-                if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
-                    notifyStatus('LOCAL_MODE');
-                    if (retryCount < 5) {
-                        retryCount++;
-                        setTimeout(() => setupRadioChannel(), 3000 * retryCount);
-                    }
+            } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
+                notifyStatus('LOCAL_MODE', `Error: ${status} ${errorMsg}`);
+
+                // Reintento automático limitado
+                if (retryCount < 5) {
+                    retryCount++;
+                    setTimeout(() => setupRadioChannel(), 5000 * retryCount);
                 }
             }
         });
@@ -114,21 +121,20 @@ export const broadcastGreeting = async (greeting: any) => {
     const channel = setupRadioChannel();
     let sentGlobal = false;
 
-    // Asegurar que el canal está listo para broadcast
-    if (channel.state === 'joined') {
-        try {
-            const resp = await channel.send({
+    try {
+        const resp = await Promise.race([
+            channel.send({
                 type: 'broadcast',
                 event: 'live_greeting',
                 payload: greeting
-            });
-            if (resp === 'ok') sentGlobal = true;
-        } catch (e) {
-            console.error('Broadcast failed:', e);
-        }
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_BROADCAST')), 6000))
+        ]);
+        if (resp === 'ok') sentGlobal = true;
+    } catch (e) {
+        console.error('Broadcast failed:', e);
     }
 
-    // SIEMPRE enviar local
     if (localChannel) {
         localChannel.postMessage({ type: 'broadcast', event: 'live_greeting', payload: greeting });
     }
@@ -144,10 +150,16 @@ export const subscribeToRadioEvents = (callback: (payload: any) => void) => {
     };
 };
 
-export const onRadioConnectionChange = (callback: (status: string, error?: any) => void) => {
+export const onRadioConnectionChange = (callback: (status: string, details?: string) => void) => {
     statusListeners.push(callback);
-    setupRadioChannel(); // Asegurar que intentamos conectar al pedir el estado
+    setupRadioChannel();
     return () => {
         statusListeners = statusListeners.filter(l => l !== callback);
     };
+};
+
+// Forzar reconexión manual
+export const forceReconnect = () => {
+    retryCount = 0;
+    setupRadioChannel();
 };
