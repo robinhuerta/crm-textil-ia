@@ -22,22 +22,23 @@ export const SLOGAN = '¡La Nueva cinco cuarenta radio, la radio que manda en el
 export const ADMIN_PASSWORD = '540admin'; // Contraseña única de administración
 
 export const DEFAULT_HOURLY_SCRIPTS: string[] = [
-    "¡Habla barrio! La música no para en la nueva cinco cuarenta radio. Son las {hora}. ¡Súbele todo!",
-    "¡Fuego en la cabina! Sintonía total en todo el Perú. Marcamos las {hora}. Aquí, la nueva cinco cuarenta radio.",
-    "La Nueva cinco cuarenta radio te informa la hora oficial: las {hora}. ¡Esa es la que manda!",
-    "¡Qué rico suena! Estamos en vivo acompañándote. Ya son las {hora}. La nueva cinco cuarenta radio."
+    "¡Oe causita! El reloj no miente: son las {hora}. Y tú, sintonizando la mejor señal del Perú. ¡La nueva cinco cuarenta radio, siempre contigo!",
+    "¡Que no pare la fiesta! Son las {hora} en punto y aquí seguimos, encendiendo tu día con lo mejor. ¡La nueva cinco cuarenta radio, tu compañía de siempre!",
+    "¡Tiempo y música, la combinación perfecta! Marcamos las {hora} desde la cabina de la nueva cinco cuarenta radio. ¡Queda con nosotros, mi gente!",
+    "¡Pasan las horas y la música no se cansa! Son las {hora}. Gracias por elegirnos hoy y siempre. ¡Esto es la nueva cinco cuarenta radio!",
+    "¡Aquí no se duerme nadie! Son las {hora} y la señal sigue al cien. La nueva cinco cuarenta radio, presente las veinticuatro horas para ti."
 ];
 
 export const DEFAULT_JINGLES: string[] = [
-    "¡La Nueva cinco cuarenta radio, la radio que manda en el barrio!",
-    "¡Sabor, ritmo y sentimiento... en la nueva cinco cuarenta radio!",
-    "¡La Nueva cinco cuarenta radio, simplemente la mejor, causita!",
-    "¡No busques más, quédate con la verdadera: la nueva cinco cuarenta radio!",
-    "¡Puro fuego, pura cumbia, pura cinco cuarenta radio!",
-    "¡Habla barrio! La música no para. Si buscas sabor, aquí nos quedamos. La Nueva cinco cuarenta radio.",
-    "¡Para la gente chamba, para la gente alegre! La Nueva cinco cuarenta radio te acompaña donde estés.",
-    "¿Te gusta la cumbia? ¿Amas el huayno? Entonces ya llegaste a tu casa. La Nueva cinco cuarenta radio.",
-    "¡No esperes más! Escribe tu saludo al WhatsApp... 933-067-069. Nuestra nueva voz virtual lo lee al aire... ¡al toque! Tú escribes, nosotros sonamos. La Nueva cinco cuarenta Radio."
+    "¡Oe mi gente! Si tu corazón late al ritmo de la cumbia, ya encontraste tu hogar. ¡La nueva cinco cuarenta radio, donde el sabor nunca se apaga!",
+    "¡Arriba los que están trabajando, arriba los que están en casa, arriba toda la familia! La nueva cinco cuarenta radio los abraza a todos con su música.",
+    "¡Tú me sintonizas a mí, yo te pongo lo mejor! Así de sencillo, así de rico. La nueva cinco cuarenta radio, tu frecuencia favorita.",
+    "¿Buscas algo diferente? Aquí lo tienes. Música de verdad, locutores de verdad, sabor de verdad. ¡La nueva cinco cuarenta radio!",
+    "¡Para el que madruga y para el que trasnocha! La nueva cinco cuarenta radio está en tu oreja, causita. ¡Sin parar!",
+    "¡Oye, cuéntale a tu vecino, cuéntale a tu primo! La radio que mueve masas está aquí. ¡La nueva cinco cuarenta radio, la que manda!",
+    "¡Ni el tráfico te baja el ánimo cuando tienes la nueva cinco cuarenta radio en el carro! ¡Quemamos la señal por ti, hermano!",
+    "¡Tu saludo puede sonar al aire hoy mismo! Escríbenos al WhatsApp novecientos treinta y tres, cero sesenta y siete, cero sesenta y nueve. La nueva cinco cuarenta radio te escucha.",
+    "¡No hay fiesta sin cumbia y no hay cumbia sin la nueva cinco cuarenta radio! ¡Eso es todo lo que necesitas saber, causita!"
 ];
 
 export const MOCK_EVENTS: RadioEvent[] = [
