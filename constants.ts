@@ -21,6 +21,17 @@ export const SLOGAN = '¡La Nueva cinco cuarenta radio, la radio que manda en el
 
 export const ADMIN_PASSWORD = '540admin'; // Contraseña única de administración
 
+// Scripts para la madrugada (12am - 5am) - para taxistas, camioneros, mercados, trabajadores nocturnos
+export const MADRUGADA_SCRIPTS: string[] = [
+    "¡Oe, oe, oe! Son las {hora} de la madrugada y aquí seguimos contigo. ¡Para todos los taxistas al volante, los camioneros en ruta, los que trabajan mientras el mundo duerme... esta señal es para ustedes! La nueva cinco cuarenta radio, tu compañía en la noche.",
+    "¡Son las {hora}! ¡Arriba los guerreros de la madrugada! Al taxista que ya lleva horas en la pista, al del mercado que ya está cargando, al camionero que cruza la carretera... ¡La nueva cinco cuarenta radio está con ustedes, no están solos!",
+    "¡Fuerza, fuerza! Son las {hora} y tú sigues de pie porque eres de los que no se rinden. ¡Eso es actitud peruana, causita! Sube el volumen, que la música te despierta el alma. La nueva cinco cuarenta radio, presente en tu madrugada.",
+    "¡Son las {hora} y la noche sigue larga! Para el que está en el mercado armando su puesto, para el taxista esperando pasajeros, para el vigilante, para el que trabaja de madrugada... ¡Un abrazo enorme! La nueva cinco cuarenta radio no te abandona.",
+    "¡Aquí no hay sueño que valga! Son las {hora}. ¡Mueve la cabeza, agita los hombros, sube ese volumen! La música es tu mejor copiloto esta madrugada. ¡Gracias por confiar en la nueva cinco cuarenta radio para acompañarte en tu chamba!",
+    "¡Son las {hora} de la madrugada! ¿Ya tomaste tu cafecito? ¡Bien hecho! Tú que estás despierto mientras todos duermen eres un verdadero campeón. ¡Pa' los camioneros, los taxistas y toda la gente del mercado... esto va por ustedes! La nueva cinco cuarenta radio.",
+    "¡Oe hermano, oe hermana! Son las {hora}. ¡No cierres los ojos todavía, que la noche es larga pero la señal no para! La nueva cinco cuarenta radio te mantiene despierto y con energía. ¡Eres un guerrero de la madrugada, sigue adelante!"
+];
+
 // Scripts cortos para las mañanas (hasta las 8am) - especial para los chicos que van al colegio
 export const MORNING_HOURLY_SCRIPTS: string[] = [
     "¡Buenos días! Son las {hora}. ¡Arriba los chicos del colegio, hoy va a ser un gran día! La nueva cinco cuarenta radio los acompaña.",
