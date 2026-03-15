@@ -306,7 +306,7 @@ const App: React.FC = () => {
 
       const greetingText = isAlreadyProfessional
         ? msg
-        : `¡Tenemos un saludo! Para ${toName}, de parte de ${fromName}. ${msg ? 'Dice: ' + msg : ''}. ¡Un abrazo grande de parte de La Nueva 5:40!`;
+        : `¡Tenemos un saludo! Para ${toName}, de parte de ${fromName}. ${msg ? 'Dice: ' + msg : ''}. ¡Un abrazo grande de parte de La Nueva cinco cuarenta radio!`;
 
       try {
         // 1. Generar audio con Gemini TTS
@@ -458,7 +458,7 @@ const App: React.FC = () => {
 
       console.log('🎙️ DJ Generando:', baseText);
 
-      const fullPrompt = `Actúa como locutor carismático de la radio peruana 'La Nueva 5:40'. Con mucha energía y sabor, di: ${baseText}`;
+      const fullPrompt = `Actúa como locutor carismático de la radio peruana 'La Nueva cinco cuarenta radio'. Con mucha energía y sabor, di: ${baseText}`;
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: fullPrompt }] }],

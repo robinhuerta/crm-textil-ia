@@ -17,27 +17,27 @@ export const FACEBOOK_URL = 'https://www.facebook.com/lanueva540';
 export const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@lanueva540';
 
 export const SPOTIFY_PROFILE_URL = 'https://open.spotify.com/user/lanueva540';
-export const SLOGAN = '¡La Nueva 5:40, la radio que manda en el barrio!';
+export const SLOGAN = '¡La Nueva cinco cuarenta radio, la radio que manda en el barrio!';
 
 export const ADMIN_PASSWORD = '540admin'; // Contraseña única de administración
 
 export const DEFAULT_HOURLY_SCRIPTS: string[] = [
-    "¡Habla barrio! La música no para en la nueva 5:40 radio. Son las {hora}. ¡Súbele todo!",
-    "¡Fuego en la cabina! Sintonía total en todo el Perú. Marcamos las {hora}.",
-    "La Nueva 5:40 radio te informa la hora oficial: las {hora}. ¡Esa es la que manda!",
-    "¡Qué rico suena! Estamos en vivo acompañándote en este verano. Ya son las {hora}."
+    "¡Habla barrio! La música no para en la nueva cinco cuarenta radio. Son las {hora}. ¡Súbele todo!",
+    "¡Fuego en la cabina! Sintonía total en todo el Perú. Marcamos las {hora}. Aquí, la nueva cinco cuarenta radio.",
+    "La Nueva cinco cuarenta radio te informa la hora oficial: las {hora}. ¡Esa es la que manda!",
+    "¡Qué rico suena! Estamos en vivo acompañándote. Ya son las {hora}. La nueva cinco cuarenta radio."
 ];
 
 export const DEFAULT_JINGLES: string[] = [
-    "¡La Nueva 5:40, la radio que manda en el barrio!",
+    "¡La Nueva cinco cuarenta radio, la radio que manda en el barrio!",
     "¡Sabor, ritmo y sentimiento... en la nueva cinco cuarenta radio!",
-    "¡La Nueva 5:40..radio. simplemente la mejor, causita!",
+    "¡La Nueva cinco cuarenta radio, simplemente la mejor, causita!",
     "¡No busques más, quédate con la verdadera: la nueva cinco cuarenta radio!",
-    "¡Puro fuego, pura cumbia, pura 5:40 radio!",
+    "¡Puro fuego, pura cumbia, pura cinco cuarenta radio!",
     "¡Habla barrio! La música no para. Si buscas sabor, aquí nos quedamos. La Nueva cinco cuarenta radio.",
     "¡Para la gente chamba, para la gente alegre! La Nueva cinco cuarenta radio te acompaña donde estés.",
     "¿Te gusta la cumbia? ¿Amas el huayno? Entonces ya llegaste a tu casa. La Nueva cinco cuarenta radio.",
-    "¡No esperes más! Escribe tu saludo al WhatsApp... 933-067-069. Nuestra nueva voz virtual lo lee al aire... ¡al toque! Tú escribes, nosotros sonamos. La Nueva 5:40 Radio."
+    "¡No esperes más! Escribe tu saludo al WhatsApp... 933-067-069. Nuestra nueva voz virtual lo lee al aire... ¡al toque! Tú escribes, nosotros sonamos. La Nueva cinco cuarenta Radio."
 ];
 
 export const MOCK_EVENTS: RadioEvent[] = [
@@ -141,14 +141,14 @@ export const MOCK_SHORTS: RadioShort[] = [
 export const LA_MACHI_DIALOGUES = [
     { speaker: 'dj1', text: '¡Habla, barrio! ¿Se te antojó su cevichito? ¡No busques más! Tu punto fijo es Cevichería La Machi. Aquí el pescado salta del mar a tu mesa con su buen toque de limón.' },
     { speaker: 'dj2', text: '¡Así es batería! Las palmas para el maestro Arturo Condori Nolazco, el encargado de ponerle la verdadera sazón que levanta a cualquiera. ¡Qué rico!' },
-    { speaker: 'dj1', text: 'Ya sabes, cae con tu mancha al Mercado Las Malvinas del Sur, en Valdiviezo, Ate. Cevichería La Machi... poniendo el sabor como auspiciador oficial de La Nueva quinientos cuarenta Radio.' }
+    { speaker: 'dj1', text: 'Ya sabes, cae con tu mancha al Mercado Las Malvinas del Sur, en Valdiviezo, Ate. Cevichería La Machi... poniendo el sabor como auspiciador oficial de La Nueva cinco cuarenta Radio.' }
 ];
 
 export const ORQUESTA_DIALOGUES = [
-    { speaker: 'dj2', text: '¡Que no te cuenten, vívelo tú mismo! Para que tu compromiso sea inolvidable, ponle el marco musical que todos prefieren: ¡la poderosa Orquesta La Nueva 5:40! De María Llata y José Mitma.' },
+    { speaker: 'dj2', text: '¡Que no te cuenten, vívelo tú mismo! Para que tu compromiso sea inolvidable, ponle el marco musical que todos prefieren: ¡la poderosa Orquesta La Nueva cinco cuarenta! De María Llata y José Mitma.' },
     { speaker: 'dj1', text: '¡Eso! Desde Huarochirí para todo el Perú, somos especialistas en hacer vibrar tus fiestas patronales, matrimonios y aniversarios a nivel nacional.' },
     { speaker: 'dj2', text: '¡Pura saxocumbia de la buena para zapatear sin parar! Para contratos, comunícate al 9 tres tres 0 seis siete 0 seis nueve o al 9 cero cero 7 cinco ocho 8 uno seis.' },
-    { speaker: 'dj1', text: '¡Orquesta La Nueva 5:40... el alma de tu fiesta!' }
+    { speaker: 'dj1', text: '¡Orquesta La Nueva cinco cuarenta... el alma de tu fiesta!' }
 ];
 
 export const ENTRUST_DIALOGUES = [
@@ -250,7 +250,7 @@ export const POLL_QUESTIONS_BANK: AutoPollQuestion[] = [
     { id: 'q20', category: 'opinion', question: '¿Qué te gusta más de la 5:40?', options: ['La música', 'Los locutores', 'El ambiente familiar'] }
 ];
 
-export const STARTUP_COMMERCIAL_TEXT = "¡Habla, barrio! ¿Se te antojó su cevichito? ¡No busques más! Tu punto fijo es Cevichería La Machi. Aquí el pescado salta del mar a tu mesa con su buen toque de limón. Las palmas para el maestro Arturo Condori Nolazco, el encargado de ponerle la verdadera sazón que levanta a cualquiera. Cae con tu mancha al Mercado Las Malvinas del Sur, en Valdiviezo, Ate. Cevichería La Machi... poniendo el sabor como auspiciador oficial de La Nueva 540 Radio.";
-export const STARTUP_ORQUESTA_TEXT = "¡Que no te cuenten, vívelo tú mismo! Para que tu compromiso sea inolvidable, ponle el marco musical que todos prefieren: ¡la poderosa Orquesta La Nueva 5:40! De María Llata y José Mitma. Desde Huarochirí para todo el Perú, somos especialistas en hacer vibrar tus fiestas patronales, matrimonios y aniversarios a nivel nacional. ¡Pura saxocumbia de la buena para zapatear sin parar! Para contratos, comunícate al 933 067 069 o al 900 758 816. ¡Orquesta La Nueva 5:40... el alma de tu fiesta!";
-export const STARTUP_ENTRUST_TEXT = "¡Así es! Marca tu propio estilo con la verdadera calidad de Gorras Entrust. Visítanos en el corazón de La Victoria: Jirón Antonio Bazo 1284. Para pedidos, catálogo o envíos, escribe al WhatsApp 960 830 305. ¡Anota bien! 960 830 305. Gorras Entrust... ¡Auspiciador oficial de La Nueva 540 Radio!";
+export const STARTUP_COMMERCIAL_TEXT = "¡Habla, barrio! ¿Se te antojó su cevichito? ¡No busques más! Tu punto fijo es Cevichería La Machi. Aquí el pescado salta del mar a tu mesa con su buen toque de limón. Las palmas para el maestro Arturo Condori Nolazco, el encargado de ponerle la verdadera sazón que levanta a cualquiera. Cae con tu mancha al Mercado Las Malvinas del Sur, en Valdiviezo, Ate. Cevichería La Machi... poniendo el sabor como auspiciador oficial de La Nueva cinco cuarenta Radio.";
+export const STARTUP_ORQUESTA_TEXT = "¡Que no te cuenten, vívelo tú mismo! Para que tu compromiso sea inolvidable, ponle el marco musical que todos prefieren: ¡la poderosa Orquesta La Nueva cinco cuarenta! De María Llata y José Mitma. Desde Huarochirí para todo el Perú, somos especialistas en hacer vibrar tus fiestas patronales, matrimonios y aniversarios a nivel nacional. ¡Pura saxocumbia de la buena para zapatear sin parar! Para contratos, comunícate al 933 067 069 o al 900 758 816. ¡Orquesta La Nueva cinco cuarenta... el alma de tu fiesta!";
+export const STARTUP_ENTRUST_TEXT = "¡Así es! Marca tu propio estilo con la verdadera calidad de Gorras Entrust. Visítanos en el corazón de La Victoria: Jirón Antonio Bazo 1284. Para pedidos, catálogo o envíos, escribe al WhatsApp 960 830 305. ¡Anota bien! 960 830 305. Gorras Entrust... ¡Auspiciador oficial de La Nueva cinco cuarenta Radio!";
 
