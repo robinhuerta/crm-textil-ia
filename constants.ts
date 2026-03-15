@@ -40,6 +40,18 @@ export const SATURDAY_NIGHT_SCRIPTS: string[] = [
     "¡Sábado de noche, hora de brillar! Son las {hora}. ¡Nada de quedarse en el sillón! Búscate tu mejor ropa, llama a quien quieras y a gozar se ha dicho. La nueva cinco cuarenta radio pone el sabor."
 ];
 
+// Scripts para los domingos - dedicados a la familia todo el día
+export const SUNDAY_FAMILY_SCRIPTS: string[] = [
+    "¡Buenos días familia! Son las {hora} de este domingo especial. ¡El mejor día para estar juntos, para abrazarse y disfrutarse! La nueva cinco cuarenta radio les desea un domingo lleno de amor.",
+    "¡Feliz domingo mi gente! Son las {hora}. ¡Hoy no hay apuros, hoy es día de familia! Pon la mesita, llama a los tuyos y a compartir ese almuerzo con amor. La nueva cinco cuarenta radio los acompaña.",
+    "¡Son las {hora} de este hermoso domingo! ¿Ya está lista la ollita? ¡Nada como el almuerzo familiar del domingo para recargar el alma! La nueva cinco cuarenta radio, sonando en tu cocina.",
+    "¡Domingo de familia, domingo de bendiciones! Son las {hora}. ¡A los papás, a las mamás, a los abuelitos, a los hijitos... un abrazo enorme de parte de la nueva cinco cuarenta radio!",
+    "¡Oe mi gente! Son las {hora} de domingo. ¡El día más especial de la semana para estar con los que más quieres! Que nada ni nadie les quite esa sonrisa familiar. La nueva cinco cuarenta radio.",
+    "¡Son las {hora}! ¡Domingo de reencuentros, de risas en la mesa, de historias en familia! Para todas las familias peruanas escuchándonos hoy, un saludo de corazón. La nueva cinco cuarenta radio.",
+    "¡Feliz domingo! Son las {hora}. ¡Hoy la radio suena más bonito porque la familia está reunida! Un domingo sin prisa, con buena música y los tuyos al lado. La nueva cinco cuarenta radio.",
+    "¡Son las {hora} de este domingo bendecido! ¡Para los que están en el almuerzo familiar, para los que ya bailaron, para los que descansan con sus seres queridos... esto va para ustedes! La nueva cinco cuarenta radio."
+];
+
 export const DEFAULT_HOURLY_SCRIPTS: string[] = [
     "¡Oe causita! El reloj no miente: son las {hora}. Y tú, sintonizando la mejor señal del Perú. ¡La nueva cinco cuarenta radio, siempre contigo!",
     "¡Que no pare la fiesta! Son las {hora} en punto y aquí seguimos, encendiendo tu día con lo mejor. ¡La nueva cinco cuarenta radio, tu compañía de siempre!",
