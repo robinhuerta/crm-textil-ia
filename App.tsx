@@ -18,7 +18,7 @@ const LiveGreetingsView = lazy(() => import('./components/LiveGreetingsView'));
 const SettingsView = lazy(() => import('./components/SettingsView'));
 
 import { GoogleGenAI, Modality } from "@google/genai";
-import { DEFAULT_HOURLY_SCRIPTS, DEFAULT_JINGLES, MOCK_EVENTS, RADIO_STREAM_URL } from './constants';
+import { DEFAULT_HOURLY_SCRIPTS, MORNING_HOURLY_SCRIPTS, DEFAULT_JINGLES, MOCK_EVENTS, RADIO_STREAM_URL } from './constants';
 import { decodeAudioData } from './utils/audioUtils';
 import { subscribeToRadioEvents, onRadioConnectionChange, supabaseAnonKey } from './services/supabase';
 import { generateGeminiSpeech, decodeGeminiAudio, playGeminiAudio } from './services/geminiTTSService';
@@ -443,7 +443,11 @@ const App: React.FC = () => {
       } else if (type === 'hourly') {
         const now = new Date();
         const horaStr = now.toLocaleTimeString('es-PE', { hour: 'numeric', minute: '2-digit', hour12: true });
-        const scripts = JSON.parse(localStorage.getItem('radio_hourly_scripts') || JSON.stringify(DEFAULT_HOURLY_SCRIPTS));
+        // Antes de las 8am usar scripts matutinos cortos (hora escolar)
+        const isMorning = now.getHours() < 8;
+        const scripts = isMorning
+          ? MORNING_HOURLY_SCRIPTS
+          : JSON.parse(localStorage.getItem('radio_hourly_scripts') || JSON.stringify(DEFAULT_HOURLY_SCRIPTS));
         baseText = scripts[Math.floor(Math.random() * scripts.length)].replace("{hora}", horaStr);
       } else {
         const jingles = JSON.parse(localStorage.getItem('radio_jingles') || JSON.stringify(DEFAULT_JINGLES));

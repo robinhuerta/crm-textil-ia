@@ -21,6 +21,15 @@ export const SLOGAN = '¡La Nueva cinco cuarenta radio, la radio que manda en el
 
 export const ADMIN_PASSWORD = '540admin'; // Contraseña única de administración
 
+// Scripts cortos para las mañanas (hasta las 8am) - especial para los chicos que van al colegio
+export const MORNING_HOURLY_SCRIPTS: string[] = [
+    "¡Buenos días! Son las {hora}. ¡Arriba los chicos del colegio, hoy va a ser un gran día! La nueva cinco cuarenta radio los acompaña.",
+    "¡Despierta Perú! Son las {hora}. ¡Ánimo a todos los estudiantes, al cole con buena vibra! La nueva cinco cuarenta radio.",
+    "¡Son las {hora}! ¡Lonchera lista, mochila lista, actitud lista! ¡Vamos con todo al colegio! La nueva cinco cuarenta radio.",
+    "¡Buenos días familia! Son las {hora}. ¡El cole espera, la música te da energía! La nueva cinco cuarenta radio, tu mañana perfecta.",
+    "¡Arriba, arriba! Son las {hora}. ¡Un abrazo grande para todos los estudiantes que ya van camino al colegio! La nueva cinco cuarenta radio."
+];
+
 export const DEFAULT_HOURLY_SCRIPTS: string[] = [
     "¡Oe causita! El reloj no miente: son las {hora}. Y tú, sintonizando la mejor señal del Perú. ¡La nueva cinco cuarenta radio, siempre contigo!",
     "¡Que no pare la fiesta! Son las {hora} en punto y aquí seguimos, encendiendo tu día con lo mejor. ¡La nueva cinco cuarenta radio, tu compañía de siempre!",
