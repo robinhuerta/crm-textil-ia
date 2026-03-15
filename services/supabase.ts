@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://zplvreuiuosmmeoaeaz.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbHZyZXVpdW9zbW1lb2VhZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NDc1MDcsImV4cCI6MjA4NTIyMzUwN30.NZE9qW4rKuZ_GZ2Xu2W3qo_vnKwO1Tud6OOAypnRg14';
+const supabaseUrl = 'https://zplvreuiuosmmeoeaeaz.supabase.co';
+export const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbHZyZXVpdW9zbW1lb2VhZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NDc1MDcsImV4cCI6MjA4NTIyMzUwN30.NZE9qW4rKuZ_GZ2Xu2W3qo_vnKwO1Tud6OOAypnRg14';
 
 // Cliente con timeout extendido
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -54,6 +54,7 @@ let radioChannel: any = null;
 let listeners: ((payload: any) => void)[] = [];
 let statusListeners: ((status: string, details?: string) => void)[] = [];
 let retryCount = 0;
+const MAX_RETRIES = 10;
 
 const notifyStatus = (status: string, details?: string) => {
     console.log(`📡 [RadioStatus] ${status} ${details || ''}`);
@@ -70,76 +71,156 @@ if (localChannel) {
     };
 }
 
-// Inicializar canal
-export const setupRadioChannel = () => {
-    // Si ya estamos suscritos de verdad, no hacer nada
-    if (radioChannel && radioChannel.state === 'joined') return radioChannel;
+// Detección de estado de red del navegador
+if (typeof window !== 'undefined') {
+    window.addEventListener('online', () => {
+        console.log('🌐 Network ONLINE - Forzando reconexión...');
+        forceReconnect();
+    });
+    window.addEventListener('offline', () => {
+        console.log('🌐 Network OFFLINE');
+        notifyStatus('LOCAL_MODE', 'Sin conexión a internet');
+    });
+}
 
-    if (radioChannel) {
-        console.log('🧹 Eliminando canal previo...');
-        supabase.removeChannel(radioChannel);
+// Inicializar canal (MODO BASE DE DATOS)
+export const setupRadioChannel = () => {
+    // Si ya estamos suscritos y conectados, no hacer nada
+    if (radioChannel && (radioChannel.state === 'joined' || radioChannel.state === 'joining')) {
+        return radioChannel;
     }
 
-    console.log(`📡 [Radio] Conectando a ${RADIO_EVENTS_CHANNEL}...`);
+    if (radioChannel) {
+        console.log('🧹 Limpiando canal previo para reconexión...');
+        supabase.removeChannel(radioChannel);
+        radioChannel = null;
+    }
 
-    radioChannel = supabase.channel(RADIO_EVENTS_CHANNEL, {
-        config: { broadcast: { self: true } }
-    });
+    console.log(`📡 [RadioDB] Iniciando conexión a Tabla radio_greetings (Intento ${retryCount + 1})...`);
 
-    radioChannel
-        .on('broadcast', { event: 'live_greeting' }, (payload: any) => {
-            console.log('🗣️ [Radio] Saludo recibido');
-            listeners.forEach(cb => cb(payload.payload));
-        })
+    radioChannel = supabase.channel('radio_db_listener')
+        .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'radio_greetings' },
+            (payload) => {
+                console.log('🗣️ [RadioDB] Nuevo saludo detectado en BD:', payload.new);
+                listeners.forEach(cb => cb(payload.new));
+            }
+        )
         .subscribe((status: string, err: any) => {
             let errorMsg = '';
             if (err) {
                 errorMsg = err.message || JSON.stringify(err);
             }
 
+            // Ignorar eventos de canal cerrado si estamos reintentando manualmente
+            if (status === 'CLOSED' && retryCount === 0) {
+            }
+
             notifyStatus(status, errorMsg);
 
             if (status === 'SUBSCRIBED') {
-                console.log('✅ RADIO ONLINE');
+                console.log('✅ RADIO DB ONLINE - Escuchando saludos');
                 retryCount = 0;
-            } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
-                notifyStatus('LOCAL_MODE', `Error: ${status} ${errorMsg}`);
-
-                // Reintento automático limitado
-                if (retryCount < 5) {
-                    retryCount++;
-                    setTimeout(() => setupRadioChannel(), 5000 * retryCount);
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || (status === 'CLOSED' && retryCount > 0)) {
+                if (retryCount >= MAX_RETRIES) {
+                    console.error(`❌ Supabase: máximo de reintentos alcanzado (${MAX_RETRIES}). Modo local activado.`);
+                    notifyStatus('LOCAL_MODE', 'Sin conexión al servidor de saludos');
+                    return;
                 }
+
+                console.warn(`⚠️ Error de conexión DB: ${status}. Reintentando (${retryCount + 1}/${MAX_RETRIES})...`);
+                notifyStatus('LOCAL_MODE', `Reconectando DB: ${status}`);
+
+                const baseDelay = 2000;
+                const maxDelay = 15000;
+                const delay = Math.min(baseDelay * Math.pow(1.5, retryCount), maxDelay);
+
+                setTimeout(() => {
+                    retryCount++;
+                    setupRadioChannel();
+                }, delay);
             }
         });
 
     return radioChannel;
 };
 
-// Enviar saludo
-export const broadcastGreeting = async (greeting: any) => {
-    const channel = setupRadioChannel();
-    let sentGlobal = false;
-
+// --- VOICE GREETINGS STORAGE ---
+// Subir audio grabado a Supabase Storage
+export const uploadVoiceGreeting = async (audioBlob: Blob, greetingId: string): Promise<string | null> => {
     try {
-        const resp = await Promise.race([
-            channel.send({
-                type: 'broadcast',
-                event: 'live_greeting',
-                payload: greeting
-            }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_BROADCAST')), 6000))
-        ]);
-        if (resp === 'ok') sentGlobal = true;
-    } catch (e) {
-        console.error('Broadcast failed:', e);
+        const extension = audioBlob.type.includes('webm') ? 'webm' : audioBlob.type.includes('ogg') ? 'ogg' : 'mp3';
+        const fileName = `voice_${greetingId}_${Date.now()}.${extension}`;
+
+        const { data, error } = await supabase.storage
+            .from('radio-voice-greetings')
+            .upload(fileName, audioBlob, {
+                contentType: audioBlob.type,
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (error) {
+            console.error('❌ Error subiendo audio:', error.message);
+            return null;
+        }
+
+        // Obtener URL pública
+        const { data: urlData } = supabase.storage
+            .from('radio-voice-greetings')
+            .getPublicUrl(data.path);
+
+        console.log('✅ Audio subido:', urlData.publicUrl);
+        return urlData.publicUrl;
+    } catch (e: any) {
+        console.error('❌ Error crítico subiendo audio:', e);
+        return null;
+    }
+};
+
+// Enviar saludo (MODO BASE DE DATOS - HTTP INSERT)
+// Esto es 100% fiable en móviles porque usa HTTP estándar, no WebSockets.
+// Enviar saludo con fallback de tabla flexible
+export const broadcastGreeting = async (greeting: any): Promise<{ success: boolean; error?: string }> => {
+    console.log('📤 [RadioDB] Enviando saludo...');
+
+    const dbPayload: any = {
+        from_name: greeting.from || 'Anónimo',
+        to_name: greeting.to || 'Todos',
+        message: greeting.message || '',
+        created_at: new Date().toISOString(),
+        is_played: false
+    };
+
+    // Si tiene audio grabado, incluir la URL
+    if (greeting.audio_url) {
+        dbPayload.audio_url = greeting.audio_url;
     }
 
-    if (localChannel) {
-        localChannel.postMessage({ type: 'broadcast', event: 'live_greeting', payload: greeting });
+    // INTENTO 1: Tabla en Inglés (radio_greetings)
+    let { error } = await supabase.from('radio_greetings').insert([dbPayload]);
+
+    if (!error) {
+        console.log('✅ [RadioDB] Guardado en radio_greetings');
+        return { success: true };
     }
 
-    return sentGlobal;
+    console.warn('⚠️ Falló radio_greetings, probando radio_saludos...', error.message);
+
+    // INTENTO 2: Tabla en Español (radio_saludos) - Por si el traductor cambió el nombre
+    const { error: error2 } = await supabase.from('radio_saludos').insert([dbPayload]);
+
+    if (!error2) {
+        console.log('✅ [RadioDB] Guardado en radio_saludos');
+        return { success: true };
+    }
+
+    // Si ambos fallan
+    console.error('❌ Error final DB:', error2);
+    const finalError = `Error 1: ${error.message} | Error 2: ${error2.message}`;
+    notifyStatus('LOCAL_MODE', 'Fallo DB: ' + error2.message);
+    return { success: false, error: finalError };
 };
 
 export const subscribeToRadioEvents = (callback: (payload: any) => void) => {
@@ -162,4 +243,32 @@ export const onRadioConnectionChange = (callback: (status: string, details?: str
 export const forceReconnect = () => {
     retryCount = 0;
     setupRadioChannel();
+};
+
+// VIGILANTE DE CONEXIÓN (WATCHDOG)
+// Verifica cada 5 segundos que la conexión esté saludable
+export const startConnectionWatchdog = () => {
+    if (typeof window === 'undefined') return;
+
+    setInterval(() => {
+        const isOnline = navigator.onLine;
+
+        if (!isOnline) {
+            notifyStatus('LOCAL_MODE', 'Sin internet (Watchdog)');
+            return;
+        }
+
+        // Si el canal no existe o no está unido/uniéndose, forzar reinicio
+        if (!radioChannel || (radioChannel.state !== 'joined' && radioChannel.state !== 'joining')) {
+            console.warn(`🐕 [Watchdog] Canal en estado inválido (${radioChannel?.state || 'null'}). Forzando reinicio...`);
+            notifyStatus('LOCAL_MODE', 'Recuperando conexión...');
+            forceReconnect();
+        } else {
+            // Si está unido, asegurar que la UI lo sepa (autocorrección visual)
+            if (radioChannel.state === 'joined') {
+                // Opcional: Podríamos emitir 'SUBSCRIBED' periódicamente si la UI se desincroniza,
+                // pero mejor solo hacerlo si detectamos que la UI cree que está desconectada.
+            }
+        }
+    }, 5000);
 };

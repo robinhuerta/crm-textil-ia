@@ -1,25 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { RadioShort } from '../types';
-import { MOCK_SHORTS } from '../constants';
+import { MOCK_SHORTS, LA_MACHI_DIALOGUES, ORQUESTA_DIALOGUES, ENTRUST_DIALOGUES } from '../constants';
 import { generateGeminiSpeech, decodeGeminiAudio, playGeminiAudio } from '../services/geminiTTSService';
 
 // Datos de cumpleañeros
-const BIRTHDAY_GREETINGS = [
-  {
-    id: 'birthday-ana-mitma',
-    name: 'Ana Mitma Quispe',
-    image: 'https://i.postimg.cc/76rTMyk2/v.jpg',
-    message: '¡Felicidades en tu día especial!',
-    dj1: 'DJ Principal',
-    dj2: 'DJ Asistente',
-    dialogues: [
-      { speaker: 'dj1', text: '¡Oeeeee mi gente bonita de La Nueva cinco cuarenta radio! ¡Miren quién está de cumpleaños hoy! Ni más ni menos que nuestra querida amiga y familia ANA MITMA QUISPE... ¡Fuego causa, qué día tan especial!' },
-      { speaker: 'dj2', text: '¡Habla batería! Así es pues causa, hoy mandamos los saluditos más chéveres para Ana, que siempre nos sintoniza desde tempranito. ¡Que la pasen lindo con toda la familia, que no falte la torta y la música!' },
-      { speaker: 'dj1', text: '¡Exacto mi broder! Y para ti Anita, que Dios te bendiga con mucha salud, amor y éxitos en este nuevo año de vida. ¡Que todos tus sueños se hagan realidad! De parte de toda la familia de La Nueva cinco cuarenta radio... ¡FELIZ CUMPLEAÑOS!' }
-    ]
-  }
-];
+const BIRTHDAY_GREETINGS: any[] = [];
 
 // Promoción para enviar saluditos
 const PROMO_SALUDITOS = {
@@ -36,22 +22,6 @@ const PROMO_SALUDITOS = {
   ]
 };
 
-// 🎉 Spot del Mercado 14 de Febrero - Día del Amor y la Amistad
-const SPOT_MERCADO_14_FEBRERO = {
-  id: 'spot-mercado-14-febrero',
-  videoUrl: 'https://streamable.com/e/dsi3h1',
-  title: '🎉 Aniversario Mercado 14 de Febrero',
-  subtitle: 'Día del Amor y la Amistad - Valdiviezo',
-  date: 'Sábado 14 de Febrero 2026',
-  location: 'Mercado 14 de Febrero de Valdiviezo',
-  dj1: 'Josecito Mitma',
-  dj2: 'María Llata',
-  dialogues: [
-    { speaker: 'dj1', text: '¡Atención mi gente bonita! ¡Este sábado 14 de febrero celebramos en grande el Día del Amor y la Amistad! ¡Y lo hacemos en el Mercado 14 de Febrero de Valdiviezo!' },
-    { speaker: 'dj2', text: '¡Así es familia! Estamos de aniversario y queremos celebrarlo contigo. Habrá música, baile y mucha alegría. ¡No te lo puedes perder!' },
-    { speaker: 'dj1', text: '¡Y para que la fiesta esté de lujo, estará amenizando la potente orquesta La Nueva cinco cuarenta de Josecito Mitma y María Llata! ¡Puro sabor, pura cumbia, puro sentimiento! ¡Te esperamos!' }
-  ]
-};
 
 const ShortsView: React.FC = () => {
   const [shorts, setShorts] = useState<RadioShort[]>([]);
@@ -184,7 +154,7 @@ const ShortsView: React.FC = () => {
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
       videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop() || "";
     }
-    return `https://www.youtube.com/embed/${videoId}?autoplay=${isActive ? 1 : 0}&controls=0&modestbranding=1&rel=0&mute=0&loop=1&playlist=${videoId}`;
+    return `https://www.youtube.com/embed/${videoId}?autoplay=${isActive ? 1 : 0}&controls=0&modestbranding=1&rel=0&mute=0&loop=1&playlist=${videoId}&showinfo=0&iv_load_policy=3`;
   };
 
   return (
@@ -457,133 +427,6 @@ const ShortsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 💕 SPOT MERCADO 14 DE FEBRERO - DÍA DEL AMOR Y LA AMISTAD */}
-      <div
-        key={SPOT_MERCADO_14_FEBRERO.id}
-        className="relative w-full h-full snap-start flex flex-col bg-gradient-to-br from-slate-950 via-rose-950/40 to-red-950/30 overflow-hidden"
-      >
-        {/* Fondo decorativo con corazones */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(25)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute animate-pulse text-2xl"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDuration: `${2 + Math.random() * 3}s`,
-                animationDelay: `${Math.random() * 2}s`,
-                opacity: 0.4
-              }}
-            >
-              {['💕', '❤️', '💖', '🎵', '🎉'][i % 5]}
-            </div>
-          ))}
-          <div className="absolute top-0 left-0 w-96 h-96 bg-rose-500/20 rounded-full blur-[120px] animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-80 h-80 bg-red-500/20 rounded-full blur-[100px] animate-pulse"></div>
-        </div>
-
-        {/* Contenido principal */}
-        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-start lg:justify-center h-full gap-4 lg:gap-8 p-4 lg:p-12 overflow-y-auto">
-
-          {/* Video de Streamable */}
-          <div className="relative flex-shrink-0 w-full max-w-[280px] lg:max-w-sm">
-            <div className="absolute -inset-2 lg:-inset-4 bg-gradient-to-r from-rose-500 via-red-500 to-pink-500 rounded-2xl lg:rounded-3xl blur-lg lg:blur-xl opacity-50 animate-pulse"></div>
-            <div className="relative rounded-xl lg:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 aspect-[9/16]">
-              <iframe
-                src={SPOT_MERCADO_14_FEBRERO.videoUrl}
-                className="absolute inset-0 w-full h-full"
-                frameBorder="0"
-                allow="autoplay; fullscreen"
-                allowFullScreen
-              ></iframe>
-            </div>
-          </div>
-
-          {/* Texto de información del evento */}
-          <div className="text-center lg:text-left space-y-6 max-w-lg">
-            <div className="space-y-3">
-              <span className="bg-gradient-to-r from-rose-500 to-red-500 text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-xl inline-block animate-pulse">
-                💕 {SPOT_MERCADO_14_FEBRERO.date}
-              </span>
-              <h2 className="text-3xl lg:text-4xl font-black text-white uppercase tracking-tight leading-tight">
-                {SPOT_MERCADO_14_FEBRERO.title}
-              </h2>
-              <p className="text-rose-300 text-sm font-bold">{SPOT_MERCADO_14_FEBRERO.subtitle}</p>
-
-              {/* Ubicación */}
-              <div className="flex items-center justify-center lg:justify-start gap-2 text-rose-200 text-xs">
-                <i className="fa-solid fa-location-dot text-rose-400"></i>
-                <span>{SPOT_MERCADO_14_FEBRERO.location}</span>
-              </div>
-            </div>
-
-            {/* Diálogos con voz */}
-            <div className="space-y-4 bg-black/40 backdrop-blur-sm rounded-3xl p-5 border border-white/10">
-              {/* Botón de voz AI */}
-              <button
-                onClick={() => speakWithGemini(SPOT_MERCADO_14_FEBRERO.dialogues)}
-                className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-full font-black text-sm uppercase tracking-wider transition-all duration-300 ${isGeminiSpeaking || isGeminiThinking
-                  ? 'bg-red-500 text-white animate-pulse hover:bg-red-600'
-                  : 'bg-gradient-to-r from-rose-500 to-red-500 text-white hover:scale-105'
-                  }`}
-              >
-                {isGeminiThinking ? (
-                  <>
-                    <i className="fa-solid fa-spinner fa-spin text-lg"></i>
-                    Generando...
-                  </>
-                ) : isGeminiSpeaking ? (
-                  <>
-                    <i className="fa-solid fa-stop text-lg"></i>
-                    ⏹️ Detener
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-microphone-lines text-lg"></i>
-                    🎙️ Escuchar Anuncio
-                  </>
-                )}
-              </button>
-
-              {SPOT_MERCADO_14_FEBRERO.dialogues.map((dialogue, idx) => (
-                <div key={idx} className={`flex items-start gap-3 p-3 rounded-2xl transition-all duration-500 ${activeDialogue === idx ? (dialogue.speaker === 'dj1' ? 'bg-rose-500/20 ring-2 ring-rose-500' : 'bg-pink-500/20 ring-2 ring-pink-500') + ' scale-[1.02]' : ''}`}>
-                  <div className={`w-10 h-10 ${dialogue.speaker === 'dj1' ? 'bg-rose-500' : 'bg-pink-500'} rounded-full flex items-center justify-center flex-shrink-0 ${activeDialogue === idx ? 'animate-pulse' : ''}`}>
-                    <i className={`fa-solid ${dialogue.speaker === 'dj1' ? 'fa-microphone' : 'fa-headphones'} text-white text-sm`}></i>
-                  </div>
-                  <div className="flex-1">
-                    <p className={`${dialogue.speaker === 'dj1' ? 'text-rose-400' : 'text-pink-400'} text-[10px] font-black uppercase tracking-wider mb-1`}>
-                      {dialogue.speaker === 'dj1' ? SPOT_MERCADO_14_FEBRERO.dj1 : SPOT_MERCADO_14_FEBRERO.dj2}
-                    </p>
-                    <p className="text-white text-sm leading-relaxed">{dialogue.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Call to action */}
-            <div className="flex items-center justify-center lg:justify-start gap-2 text-slate-400 text-[9px] font-bold uppercase tracking-widest">
-              <span className="animate-bounce">💖</span>
-              <span>Orquesta La Nueva 5:40 - ¡Te esperamos!</span>
-              <span className="animate-bounce">🎵</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Badge */}
-        <div className="absolute top-6 left-6 z-20">
-          <span className="bg-gradient-to-r from-rose-500 to-red-500 text-white px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-2xl inline-flex items-center gap-2">
-            <i className="fa-solid fa-heart"></i>
-            Evento Especial
-          </span>
-        </div>
-
-        {/* Indicador de scroll */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 animate-bounce">
-          <span className="text-slate-500 text-[8px] font-bold uppercase tracking-widest">Desliza para más</span>
-          <i className="fa-solid fa-chevron-down text-rose-400"></i>
-        </div>
-      </div>
 
 
       {shorts.length === 0 && !showBirthdays ? (
@@ -598,30 +441,128 @@ const ShortsView: React.FC = () => {
             onMouseEnter={() => setActiveIndex(index)}
             className="relative w-full h-full snap-start flex flex-col bg-black overflow-hidden"
           >
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 flex items-center justify-center bg-[#000]">
               {short.videoUrl ? (
-                <iframe
-                  src={getEmbedUrl(short.videoUrl, index)}
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allow="autoplay; encrypted-media"
-                ></iframe>
+                <div className="w-full h-full max-w-4xl aspect-video lg:aspect-auto">
+                  <iframe
+                    src={getEmbedUrl(short.videoUrl, index)}
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="autoplay; encrypted-media"
+                  ></iframe>
+                </div>
               ) : (
                 <img
                   src={short.thumbnail}
                   alt={short.title}
-                  className="w-full h-full object-contain bg-black"
+                  className="max-w-full max-h-full object-contain shadow-2xl"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none"></div>
             </div>
 
-            <div className="absolute bottom-12 left-0 right-0 p-8 z-20 space-y-4 pointer-events-none">
-              <span className="bg-[#a3cf33] text-black px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-2xl inline-block">Publicidad 5:40</span>
-              <h3 className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-2xl">{short.title}</h3>
+            <div className="absolute bottom-12 lg:bottom-4 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-20 space-y-2 pointer-events-none flex flex-col items-center text-center">
+              <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+                <span className="bg-[#a3cf33] text-black px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-[0.2em] shadow-2xl inline-block">Publicidad 5:40</span>
+                <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-[0.2em] shadow-2xl inline-block">🐟 Auspiciador Oficial</span>
+              </div>
+
+              <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-2xl mb-1">{short.title}</h3>
+
+              {short.id === 'ad-la-machi' && (
+                <div className="pointer-events-auto w-[90%] md:w-auto flex flex-col items-center mx-auto">
+                  <button
+                    onClick={() => speakWithGemini(LA_MACHI_DIALOGUES)}
+                    className={`flex items-center justify-center gap-3 py-3 px-10 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-2xl ${isGeminiSpeaking || isGeminiThinking
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-gradient-to-r from-[#a3cf33] to-yellow-400 text-black hover:scale-105 active:scale-95'
+                      }`}
+                  >
+                    {isGeminiThinking ? (
+                      <><i className="fa-solid fa-spinner fa-spin text-lg"></i> Sintonizando...</>
+                    ) : isGeminiSpeaking ? (
+                      <><i className="fa-solid fa-stop text-lg"></i> Detener Spot</>
+                    ) : (
+                      <><i className="fa-solid fa-microphone-lines text-lg"></i> Escuchar Spot 🎙️</>
+                    )}
+                  </button>
+
+                  {isGeminiSpeaking && activeDialogue !== -1 && (
+                    <div className="mt-4 bg-black/80 backdrop-blur-[20px] p-5 rounded-[2rem] border border-white/20 animate-fadeInUp max-w-md shadow-2xl">
+                      <p className="text-[#a3cf33] text-[10px] font-black uppercase mb-1 tracking-widest text-center">
+                        {LA_MACHI_DIALOGUES[activeDialogue].speaker === 'dj1' ? 'DJ Principal' : 'DJ Asistente'}
+                      </p>
+                      <p className="text-white text-xs md:text-sm leading-relaxed italic font-medium">
+                        "{LA_MACHI_DIALOGUES[activeDialogue].text}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {short.id === 'ad-orquesta' && (
+                <div className="pointer-events-auto w-[90%] md:w-auto flex flex-col items-center mx-auto">
+                  <button
+                    onClick={() => speakWithGemini(ORQUESTA_DIALOGUES)}
+                    className={`flex items-center justify-center gap-3 py-3 px-10 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-2xl ${isGeminiSpeaking || isGeminiThinking
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-gradient-to-r from-orange-500 to-yellow-400 text-black hover:scale-105 active:scale-95'
+                      }`}
+                  >
+                    {isGeminiThinking ? (
+                      <><i className="fa-solid fa-spinner fa-spin text-lg"></i> Sintonizando...</>
+                    ) : isGeminiSpeaking ? (
+                      <><i className="fa-solid fa-stop text-lg"></i> Detener Spot</>
+                    ) : (
+                      <><i className="fa-solid fa-microphone-lines text-lg"></i> Escuchar Fiesta 🎺</>
+                    )}
+                  </button>
+
+                  {isGeminiSpeaking && activeDialogue !== -1 && (
+                    <div className="mt-4 bg-black/80 backdrop-blur-[20px] p-5 rounded-[2rem] border border-white/20 animate-fadeInUp max-w-md shadow-2xl">
+                      <p className="text-orange-400 text-[10px] font-black uppercase mb-1 tracking-widest text-center">
+                        {ORQUESTA_DIALOGUES[activeDialogue].speaker === 'dj1' ? 'DJ Principal' : 'DJ Asistente'}
+                      </p>
+                      <p className="text-white text-xs md:text-sm leading-relaxed italic font-medium">
+                        "{ORQUESTA_DIALOGUES[activeDialogue].text}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {short.id === 'ad-entrust' && (
+                <div className="pointer-events-auto w-[90%] md:w-auto flex flex-col items-center mx-auto">
+                  <button
+                    onClick={() => speakWithGemini(ENTRUST_DIALOGUES)}
+                    className={`flex items-center justify-center gap-3 py-3 px-10 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-2xl ${isGeminiSpeaking || isGeminiThinking
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:scale-105 active:scale-95'
+                      }`}
+                  >
+                    {isGeminiThinking ? (
+                      <><i className="fa-solid fa-spinner fa-spin text-lg"></i> Sintonizando...</>
+                    ) : isGeminiSpeaking ? (
+                      <><i className="fa-solid fa-stop text-lg"></i> Detener Spot</>
+                    ) : (
+                      <><i className="fa-solid fa-hat-cowboy text-lg"></i> Escuchar Estilo 🧢</>
+                    )}
+                  </button>
+
+                  {isGeminiSpeaking && activeDialogue !== -1 && (
+                    <div className="mt-4 bg-black/80 backdrop-blur-[20px] p-5 rounded-[2rem] border border-white/20 animate-fadeInUp max-w-md shadow-2xl">
+                      <p className="text-blue-400 text-[10px] font-black uppercase mb-1 tracking-widest text-center">
+                        {ENTRUST_DIALOGUES[activeDialogue].speaker === 'dj1' ? 'DJ Principal' : 'DJ Asistente'}
+                      </p>
+                      <p className="text-white text-xs md:text-sm leading-relaxed italic font-medium">
+                        "{ENTRUST_DIALOGUES[activeDialogue].text}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Indicador de Swipe */}
             <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-30">
               <div className="w-1.5 h-16 bg-white/10 rounded-full overflow-hidden">
                 <div className="w-full bg-[#a3cf33] transition-all duration-500" style={{ height: `${((index + 1) / shorts.length) * 100}%` }}></div>

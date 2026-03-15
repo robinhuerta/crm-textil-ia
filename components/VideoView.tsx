@@ -3,9 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { MOCK_VIDEOS, YOUTUBE_CHANNEL_URL } from '../constants';
 import { YouTubeVideo } from '../types';
 
+// Construye la URL de embed correctamente, manejando playlists (que ya tienen '?' en el videoId)
+const getEmbedUrl = (videoId: string, autoplay: boolean): string => {
+  const base = `https://www.youtube.com/embed/${videoId}`;
+  const sep = videoId.includes('?') ? '&' : '?';
+  return `${base}${sep}rel=0&modestbranding=1${autoplay ? '&autoplay=1' : ''}`;
+};
+
 const VideoView: React.FC = () => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [selected, setSelected] = useState<YouTubeVideo | null>(null);
+  const [autoplay, setAutoplay] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('radio_videos');
@@ -21,6 +29,12 @@ const VideoView: React.FC = () => {
       window.dispatchEvent(new CustomEvent('radio_playback_control', { detail: { action: 'play' } }));
     };
   }, []);
+
+  const handleSelectVideo = (v: YouTubeVideo) => {
+    setSelected(v);
+    setAutoplay(true);
+    window.dispatchEvent(new CustomEvent('radio_playback_control', { detail: { action: 'pause' } }));
+  };
 
   return (
     <div className="space-y-10 animate-fadeIn pb-20">
@@ -38,9 +52,12 @@ const VideoView: React.FC = () => {
       {selected && (
         <section className="aspect-video w-full rounded-[3rem] overflow-hidden bg-black border border-white/10 shadow-2xl">
           <iframe
-            src={`https://www.youtube.com/embed/${selected.videoId}?autoplay=0&rel=0`}
+            key={selected.id}
+            src={getEmbedUrl(selected.videoId, autoplay)}
+            title={selected.title}
             className="w-full h-full"
-            frameBorder="0"
+            style={{ border: 'none' }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           ></iframe>
         </section>
@@ -50,10 +67,10 @@ const VideoView: React.FC = () => {
         {videos.map((v) => (
           <div
             key={v.id}
-            onClick={() => { setSelected(v); window.dispatchEvent(new CustomEvent('radio_playback_control', { detail: { action: 'pause' } })); }}
+            onClick={() => handleSelectVideo(v)}
             className={`cursor-pointer glass-dark rounded-2xl overflow-hidden border border-white/5 transition-all ${selected?.id === v.id ? 'border-[#a3cf33] scale-105' : 'opacity-60 hover:opacity-100'}`}
           >
-            <img src={v.thumbnail} className="w-full aspect-video object-cover" alt="" />
+            <img src={v.thumbnail} className="w-full aspect-video object-cover" alt={v.title} />
             <div className="p-4">
               <h4 className="text-white font-bold text-[10px] uppercase truncate">{v.title}</h4>
             </div>

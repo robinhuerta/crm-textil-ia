@@ -114,7 +114,7 @@ export function playGeminiAudio(
 ): AudioBufferSourceNode {
     const source = audioContext.createBufferSource();
     source.buffer = audioBuffer;
-    source.playbackRate.value = 1.08; // Velocidad 8% más rápida
+    source.playbackRate.value = 1.15; // Velocidad 15% más rápida para sonar "más pilas"
     source.connect(audioContext.destination);
 
     source.onended = () => {

@@ -239,24 +239,27 @@ const PollsView: React.FC = () => {
          {/* POLL CONTENT */}
          {poll && !timeRemaining.expired ? (
             <div className="glass-dark p-8 md:p-12 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden bg-slate-950/60">
-               {/* COUNTDOWN */}
-               <div className="absolute top-6 right-6 bg-red-600/20 border border-red-500/30 px-4 py-2 rounded-xl">
-                  <p className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-1">Tiempo restante</p>
-                  <p className="text-xl font-mono font-black text-white">
-                     {String(timeRemaining.hours).padStart(2, '0')}:
-                     {String(timeRemaining.minutes).padStart(2, '0')}:
-                     {String(timeRemaining.seconds).padStart(2, '0')}
-                  </p>
-               </div>
-
-               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-white/5 pb-8">
-                  <div className="space-y-2">
+               <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 mb-10 border-b border-white/5 pb-8">
+                  <div className="space-y-2 flex-1">
                      <p className="text-[#a3cf33] text-[9px] font-black uppercase tracking-[0.3em]">Encuesta del Momento</p>
-                     <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight leading-none pr-32">{poll.question}</h3>
+                     <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight leading-none">{poll.question}</h3>
                   </div>
-                  <div className="bg-black/40 px-6 py-3 rounded-2xl border border-white/10 text-center shrink-0">
-                     <p className="text-[18px] font-black text-white leading-none">{totalVotes}</p>
-                     <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1">Votos</p>
+
+                  <div className="flex flex-row md:flex-col gap-3 items-center md:items-end w-full md:w-auto justify-center md:justify-end">
+                     {/* COUNTDOWN */}
+                     <div className="bg-red-600/20 border border-red-500/30 px-4 py-2 rounded-xl text-center">
+                        <p className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-1">Tiempo restante</p>
+                        <p className="text-xl font-mono font-black text-white">
+                           {String(timeRemaining.hours).padStart(2, '0')}:
+                           {String(timeRemaining.minutes).padStart(2, '0')}:
+                           {String(timeRemaining.seconds).padStart(2, '0')}
+                        </p>
+                     </div>
+
+                     <div className="bg-black/40 px-6 py-3 rounded-2xl border border-white/10 text-center shrink-0">
+                        <p className="text-[18px] font-black text-white leading-none">{totalVotes}</p>
+                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1">Votos</p>
+                     </div>
                   </div>
                </div>
 
@@ -341,7 +344,8 @@ const PollsView: React.FC = () => {
                   </>
                )}
             </div>
-         )}
+         )
+         }
 
 
 
@@ -351,7 +355,7 @@ const PollsView: React.FC = () => {
                SISTEMA DE VOTACIÓN LA NUEVA 5:40
             </p>
          </div>
-      </div>
+      </div >
    );
 };
 

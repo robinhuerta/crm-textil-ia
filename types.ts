@@ -60,6 +60,7 @@ export interface LiveGreeting {
   from: string;      // De parte de
   to: string;        // Para quién
   message?: string;  // Mensaje opcional
+  audio_url?: string; // URL del audio grabado con micrófono
   status: 'pending' | 'reading' | 'completed' | 'rejected';
   timestamp: string;
 }

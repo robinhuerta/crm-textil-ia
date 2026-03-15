@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WHATSAPP_URL, TIKTOK_URL, FACEBOOK_URL, RADIO_STREAM_URL, RADIO_STREAM_CUMBIAS, RADIO_STREAM_HUAYNOS, GREETINGS_WHATSAPP } from '../constants';
+import { WHATSAPP_URL, TIKTOK_URL, FACEBOOK_URL, RADIO_STREAM_URL, RADIO_STREAM_ROCK, RADIO_STREAM_CUMBIAS, RADIO_STREAM_HUAYNOS, GREETINGS_WHATSAPP, RADIO_STREAM_SALSA, RADIO_STREAM_VALLENATOS, RADIO_STREAM_BALADAS, RADIO_STREAM_FIESTA } from '../constants';
 import { NavTab } from '../types';
 
 interface HomeViewProps {
@@ -44,9 +44,6 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
     window.dispatchEvent(new Event('radio_url_changed'));
   };
 
-  const triggerDjTest = () => {
-    window.dispatchEvent(new CustomEvent('trigger_jingle_manual'));
-  };
 
   const pedirCancion = () => {
     const msg = encodeURIComponent("¡Habla La Nueva 5:40! Quiero pedir un temita para el barrio...");
@@ -85,10 +82,10 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
               rel="noreferrer"
               className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-r from-[#25D366] to-[#20bd5a] text-white font-black rounded-2xl text-base uppercase tracking-widest hover:shadow-2xl hover:shadow-green-500/50 transition-all hover:scale-105 active:scale-95"
             >
-              <i className="fa-brands fa-whatsapp text-2xl"></i>
+              <i className="fa-brands fa-whatsapp text-xl"></i>
               <div className="text-left">
                 <p className="text-xs opacity-80">Envía tu saludo al</p>
-                <p className="text-lg">930-404-573</p>
+                <p className="text-lg">933-067-069</p>
               </div>
             </a>
           </div>
@@ -106,7 +103,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
           {/* RELOJ HORA PERUANA */}
           <div className="flex-1 flex flex-col items-center justify-center px-4">
             <div className="bg-gradient-to-r from-[#a3cf33]/10 to-orange-500/10 border border-white/10 rounded-2xl px-6 py-3 text-center">
-              <p className="text-[#a3cf33] font-mono text-2xl md:text-3xl lg:text-4xl font-bold tracking-wider">
+              <p className="text-[#a3cf33] font-mono text-3xl md:text-4xl lg:text-5xl font-bold tracking-wider">
                 {peruTime || '--:--:--'}
               </p>
               <p className="text-slate-400 text-[8px] md:text-[9px] font-bold uppercase tracking-widest mt-1">
@@ -114,23 +111,19 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
               </p>
             </div>
           </div>
-          <div className="flex justify-center items-center w-full lg:w-auto">
-            <button
-              onClick={triggerDjTest}
-              className="flex items-center justify-center gap-2 px-8 py-4 bg-orange-600 text-white shadow-xl shadow-orange-600/20 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-orange-500 hover:scale-105 transition-all active:scale-95 group"
-            >
-              <i className="fa-solid fa-microphone-lines text-2xl group-hover:scale-110 transition-transform"></i>
-              DJ AI
-            </button>
-          </div>
         </div>
 
         <div className="space-y-4">
           <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.5em] text-center lg:text-left mb-2">Señales Disponibles</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StreamBtn label="Principal" icon="fa-tower-broadcast" active={activeStream === RADIO_STREAM_URL} color="bg-[#a3cf33]" onClick={() => switchStream(RADIO_STREAM_URL)} />
-            <StreamBtn label="Cumbias" icon="fa-guitar" active={activeStream === RADIO_STREAM_CUMBIAS} color="bg-[#3fb4e5]" onClick={() => switchStream(RADIO_STREAM_CUMBIAS)} />
-            <StreamBtn label="Huaynos" icon="fa-music" active={activeStream === RADIO_STREAM_HUAYNOS} color="bg-orange-500" onClick={() => switchStream(RADIO_STREAM_HUAYNOS)} />
+            <StreamBtn label="Fiesta" icon="fa-glass-cheers" active={activeStream === RADIO_STREAM_FIESTA} color="bg-amber-500" onClick={() => switchStream(RADIO_STREAM_FIESTA)} />
+            <StreamBtn label="Cumbias" icon="fa-music" active={activeStream === RADIO_STREAM_CUMBIAS} color="bg-[#3fb4e5]" onClick={() => switchStream(RADIO_STREAM_CUMBIAS)} />
+            <StreamBtn label="Salsa" icon="fa-drum" active={activeStream === RADIO_STREAM_SALSA} color="bg-indigo-500" onClick={() => switchStream(RADIO_STREAM_SALSA)} />
+            <StreamBtn label="Vallenatos" icon="fa-microphone-lines" active={activeStream === RADIO_STREAM_VALLENATOS} color="bg-yellow-500" onClick={() => switchStream(RADIO_STREAM_VALLENATOS)} />
+            <StreamBtn label="Rock" icon="fa-guitar" active={activeStream === RADIO_STREAM_ROCK} color="bg-red-500" onClick={() => switchStream(RADIO_STREAM_ROCK)} />
+            <StreamBtn label="Baladas" icon="fa-heart" active={activeStream === RADIO_STREAM_BALADAS} color="bg-rose-500" onClick={() => switchStream(RADIO_STREAM_BALADAS)} />
+            <StreamBtn label="Huaynos" icon="fa-compact-disc" active={activeStream === RADIO_STREAM_HUAYNOS} color="bg-orange-500" onClick={() => switchStream(RADIO_STREAM_HUAYNOS)} />
           </div>
         </div>
       </section >

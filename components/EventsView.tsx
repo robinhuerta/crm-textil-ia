@@ -34,9 +34,17 @@ const EventsView: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<RadioEvent | null>(null);
 
   const loadEvents = () => {
-    localStorage.removeItem('radio_events');
-    const list = MOCK_EVENTS;
-    const sorted = [...list].sort((a: RadioEvent, b: RadioEvent) =>
+    // Obtener la fecha actual (al inicio del día para no ser tan estrictos o ahora mismo)
+    const now = new Date().getTime();
+
+    // Filtrar eventos: mantener solo los que no han expirado o terminan en el futuro
+    // Nota: MOCK_EVENTS viene de constants.ts
+    const activeEvents = MOCK_EVENTS.filter(event => {
+      if (!event.date) return true; // Eventos sin fecha se quedan (ej. "Próximamente")
+      return new Date(event.date).getTime() > (now - 1000 * 60 * 60 * 6); // Se quedan hasta 6 horas después de empezar
+    });
+
+    const sorted = [...activeEvents].sort((a: RadioEvent, b: RadioEvent) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     setEvents(sorted);
@@ -186,8 +194,8 @@ const EventsView: React.FC = () => {
 
                     {/* DATE BADGE CON GRADIENTE */}
                     <div className={`absolute top-4 left-4 px-5 py-2.5 rounded-2xl font-black text-xs uppercase shadow-2xl backdrop-blur-xl ${isExpired
-                        ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-slate-300'
-                        : 'bg-gradient-to-r from-[#a3cf33] to-yellow-400 text-black'
+                      ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-slate-300'
+                      : 'bg-gradient-to-r from-[#a3cf33] to-yellow-400 text-black'
                       }`}>
                       {event.date ? new Date(event.date).toLocaleDateString('es-PE', {
                         day: 'numeric',
@@ -270,8 +278,8 @@ const EventsView: React.FC = () => {
                       <button
                         onClick={() => window.open(`${WHATSAPP_URL}?text=Hola! Quiero info de: ${event.title}`, '_blank')}
                         className={`flex-1 py-3 md:py-4 font-black rounded-2xl text-[10px] md:text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${isExpired
-                            ? 'bg-slate-700 text-slate-400'
-                            : 'bg-gradient-to-r from-[#25D366] to-[#20bd5a] text-white hover:shadow-lg hover:shadow-green-500/50'
+                          ? 'bg-slate-700 text-slate-400'
+                          : 'bg-gradient-to-r from-[#25D366] to-[#20bd5a] text-white hover:shadow-lg hover:shadow-green-500/50'
                           }`}
                       >
                         <i className="fa-brands fa-whatsapp text-lg md:text-xl"></i>

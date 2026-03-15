@@ -2,25 +2,52 @@ import React, { useState, useEffect } from 'react';
 import { NavTab } from '../types';
 import { ADMIN_PASSWORD } from '../constants';
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 5 * 60 * 1000; // 5 minutos
+
 const SettingsView: React.FC = () => {
     const [isUnlocked, setIsUnlocked] = useState(false);
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [attempts, setAttempts] = useState(0);
 
     const handleUnlock = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Verificar si está bloqueado
+        const lockoutUntil = localStorage.getItem('admin_lockout_until');
+        if (lockoutUntil && Date.now() < parseInt(lockoutUntil)) {
+            const remaining = Math.ceil((parseInt(lockoutUntil) - Date.now()) / 60000);
+            setError(`Demasiados intentos. Espera ${remaining} minuto(s).`);
+            setPassword('');
+            return;
+        }
+
         if (password === ADMIN_PASSWORD) {
             setIsUnlocked(true);
             setError('');
+            setAttempts(0);
+            localStorage.removeItem('admin_lockout_until');
             localStorage.setItem('settings_unlocked', 'true');
         } else {
-            setError('Contraseña incorrecta');
+            const newAttempts = attempts + 1;
+            setAttempts(newAttempts);
+            if (newAttempts >= MAX_ATTEMPTS) {
+                localStorage.setItem('admin_lockout_until', String(Date.now() + LOCKOUT_MS));
+                setError('Demasiados intentos fallidos. Bloqueado por 5 minutos.');
+            } else {
+                setError(`Contraseña incorrecta (${newAttempts}/${MAX_ATTEMPTS} intentos)`);
+            }
             setPassword('');
         }
     };
 
     const navigateToGreetings = () => {
         window.dispatchEvent(new CustomEvent('navigate_to_tab', { detail: NavTab.GREETINGS }));
+    };
+
+    const triggerDjTest = () => {
+        window.dispatchEvent(new CustomEvent('trigger_jingle_manual'));
     };
 
     // Check if already unlocked in this session
@@ -159,7 +186,7 @@ const SettingsView: React.FC = () => {
 
                             <div className="space-y-2 text-xs">
                                 <p className="text-slate-500">
-                                    <span className="text-[#a3cf33] font-bold">Versión:</span> 2.0.0
+                                    <span className="text-[#a3cf33] font-bold">Versión:</span> v6.0 (Netlify Function)
                                 </p>
                                 <p className="text-slate-500">
                                     <span className="text-[#a3cf33] font-bold">Optimizaciones:</span> Lazy Loading, Service Worker
@@ -184,14 +211,19 @@ const SettingsView: React.FC = () => {
                     <div className="text-center p-4 bg-white/5 rounded-2xl">
                         <p className="text-2xl font-black text-[#a3cf33] mb-1">📱</p>
                         <p className="text-slate-400 text-xs font-bold">WhatsApp Saludos</p>
-                        <p className="text-white text-sm font-black mt-1">930-404-573</p>
+                        <p className="text-white font-bold">933-067-069</p>
                     </div>
 
-                    <div className="text-center p-4 bg-white/5 rounded-2xl">
-                        <p className="text-2xl font-black text-blue-400 mb-1">🤖</p>
+                    <button
+                        onClick={triggerDjTest}
+                        className="text-center p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all active:scale-95 group"
+                    >
+                        <p className="text-2xl font-black text-blue-400 mb-1 group-hover:scale-110 transition-transform">🤖</p>
                         <p className="text-slate-400 text-xs font-bold">DJ AI</p>
-                        <p className="text-white text-sm font-black mt-1">Activo</p>
-                    </div>
+                        <p className="text-[#a3cf33] text-[9px] font-black uppercase tracking-widest mt-1 bg-[#a3cf33]/10 py-1 rounded-full border border-[#a3cf33]/20">
+                            Probar IA
+                        </p>
+                    </button>
 
                     <div className="text-center p-4 bg-white/5 rounded-2xl">
                         <p className="text-2xl font-black text-purple-400 mb-1">🎵</p>
