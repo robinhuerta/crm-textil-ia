@@ -18,7 +18,7 @@ const LiveGreetingsView = lazy(() => import('./components/LiveGreetingsView'));
 const SettingsView = lazy(() => import('./components/SettingsView'));
 
 import { GoogleGenAI, Modality } from "@google/genai";
-import { DEFAULT_HOURLY_SCRIPTS, MORNING_HOURLY_SCRIPTS, DEFAULT_JINGLES, MOCK_EVENTS, RADIO_STREAM_URL } from './constants';
+import { DEFAULT_HOURLY_SCRIPTS, MORNING_HOURLY_SCRIPTS, SATURDAY_NIGHT_SCRIPTS, DEFAULT_JINGLES, MOCK_EVENTS, RADIO_STREAM_URL } from './constants';
 import { decodeAudioData } from './utils/audioUtils';
 import { subscribeToRadioEvents, onRadioConnectionChange, supabaseAnonKey } from './services/supabase';
 import { generateGeminiSpeech, decodeGeminiAudio, playGeminiAudio } from './services/geminiTTSService';
@@ -443,13 +443,16 @@ const App: React.FC = () => {
       } else if (type === 'hourly') {
         const now = new Date();
         const horaStr = now.toLocaleTimeString('es-PE', { hour: 'numeric', minute: '2-digit', hour12: true });
-        // Antes de las 8am en días de semana (lunes-viernes) usar scripts matutinos del colegio
+        // Seleccionar scripts según día y hora
         const hour = now.getHours();
         const dayOfWeek = now.getDay(); // 0=domingo, 6=sábado
         const isSchoolMorning = hour < 8 && dayOfWeek >= 1 && dayOfWeek <= 5;
+        const isSaturdayNight = dayOfWeek === 6 && hour >= 18 && hour < 22;
         const scripts = isSchoolMorning
           ? MORNING_HOURLY_SCRIPTS
-          : JSON.parse(localStorage.getItem('radio_hourly_scripts') || JSON.stringify(DEFAULT_HOURLY_SCRIPTS));
+          : isSaturdayNight
+            ? SATURDAY_NIGHT_SCRIPTS
+            : JSON.parse(localStorage.getItem('radio_hourly_scripts') || JSON.stringify(DEFAULT_HOURLY_SCRIPTS));
         baseText = scripts[Math.floor(Math.random() * scripts.length)].replace("{hora}", horaStr);
       } else {
         const jingles = JSON.parse(localStorage.getItem('radio_jingles') || JSON.stringify(DEFAULT_JINGLES));

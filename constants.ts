@@ -30,6 +30,16 @@ export const MORNING_HOURLY_SCRIPTS: string[] = [
     "¡Arriba, arriba! Son las {hora}. ¡Un abrazo grande para todos los estudiantes que ya van camino al colegio! La nueva cinco cuarenta radio."
 ];
 
+// Scripts para los sábados por la noche (6pm - 10pm) - invitando a las fiestas
+export const SATURDAY_NIGHT_SCRIPTS: string[] = [
+    "¡Oe, oe, oe! Son las {hora} del sábado y la noche recién empieza. ¡Arréglate, avísale a tu gente y sal a bailar! La nueva cinco cuarenta radio te calienta el ambiente.",
+    "¡Sábado de fiesta, causita! Son las {hora} y todavía hay tiempo pa' todo. ¡Llama a tu mancha, pónganse guapos y a zapatear hasta el amanecer! La nueva cinco cuarenta radio.",
+    "¡Que nadie se quede en casa este sábado! Son las {hora}. ¿Dónde está la cumbia? ¡En la pista, mi gente! Sal, baila, disfruta. La nueva cinco cuarenta radio te acompaña.",
+    "¡Fuego, fuego! Son las {hora} de este sábado glorioso. ¡Las fiestas están prendidas y tú tienes que estar ahí! Avisa a los tuyos y vayan con todo. La nueva cinco cuarenta radio.",
+    "¡Son las {hora} del mejor día de la semana! El sábado no perdona, mi gente. ¡La pista te espera, la cumbia te llama, tu gente ya está lista! ¡Vamos que hay fiesta! La nueva cinco cuarenta radio.",
+    "¡Sábado de noche, hora de brillar! Son las {hora}. ¡Nada de quedarse en el sillón! Búscate tu mejor ropa, llama a quien quieras y a gozar se ha dicho. La nueva cinco cuarenta radio pone el sabor."
+];
+
 export const DEFAULT_HOURLY_SCRIPTS: string[] = [
     "¡Oe causita! El reloj no miente: son las {hora}. Y tú, sintonizando la mejor señal del Perú. ¡La nueva cinco cuarenta radio, siempre contigo!",
     "¡Que no pare la fiesta! Son las {hora} en punto y aquí seguimos, encendiendo tu día con lo mejor. ¡La nueva cinco cuarenta radio, tu compañía de siempre!",
