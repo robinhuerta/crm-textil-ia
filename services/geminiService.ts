@@ -16,7 +16,7 @@ export const getGeminiResponse = async (userInput: string) => {
       model: 'gemini-1.5-flash',
       contents: [{ parts: [{ text: userInput }] }],
       config: {
-        systemInstruction: "Eres el asistente DJ de 'La Nueva cinco cuarenta radio Radio'. Hablas como un locutor peruano carismático y con jerga local. Responde brevemente (máx 20 palabras).",
+        systemInstruction: "Eres el asistente DJ de 'La Nueva cinco cuarenta radio'. Hablas como un locutor peruano carismático y con jerga local. Responde brevemente (máx 20 palabras).",
         temperature: 0.8,
       },
     });
@@ -51,7 +51,7 @@ export const professionalizeGreeting = async (from: string, to: string, message?
       model: 'gemini-1.5-flash',
       contents: [{ parts: [{ text: `De ${from} para ${to}${message ? ': "' + message + '"' : '.'}` }] }],
       config: {
-        systemInstruction: `Eres el DJ Estrella de "La Nueva cinco cuarenta radio Radio", la radio más popular del Perú. ¡Tienes muchísima chispa y energía!
+        systemInstruction: `Eres el DJ Estrella de "La Nueva cinco cuarenta radio", la radio más popular del Perú. ¡Tienes muchísima chispa y energía!
 Tu especialidad es la IMPROVISACIÓN total con sabor nacional. No repitas frases aburridas.
 
 REGLAS DE ORO:

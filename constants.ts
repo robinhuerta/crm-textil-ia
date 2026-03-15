@@ -146,7 +146,7 @@ export const LA_MACHI_DIALOGUES = [
 
 export const ORQUESTA_DIALOGUES = [
     { speaker: 'dj2', text: '¡Que no te cuenten, vívelo tú mismo! Para que tu compromiso sea inolvidable, ponle el marco musical que todos prefieren: ¡la poderosa Orquesta La Nueva cinco cuarenta! De María Llata y José Mitma.' },
-    { speaker: 'dj1', text: '¡Eso! Desde Huarochirí para todo el Perú, somos especialistas en hacer vibrar tus fiestas patronales, matrimonios y aniversarios a nivel nacional.' },
+    { speaker: 'dj1', text: '¡Eso! Para todo el Perú y el mundo, somos especialistas en hacer vibrar tus fiestas patronales, matrimonios y aniversarios a nivel internacional.' },
     { speaker: 'dj2', text: '¡Pura saxocumbia de la buena para zapatear sin parar! Para contratos, comunícate al 9 tres tres 0 seis siete 0 seis nueve o al 9 cero cero 7 cinco ocho 8 uno seis.' },
     { speaker: 'dj1', text: '¡Orquesta La Nueva cinco cuarenta... el alma de tu fiesta!' }
 ];
@@ -251,6 +251,6 @@ export const POLL_QUESTIONS_BANK: AutoPollQuestion[] = [
 ];
 
 export const STARTUP_COMMERCIAL_TEXT = "¡Habla, barrio! ¿Se te antojó su cevichito? ¡No busques más! Tu punto fijo es Cevichería La Machi. Aquí el pescado salta del mar a tu mesa con su buen toque de limón. Las palmas para el maestro Arturo Condori Nolazco, el encargado de ponerle la verdadera sazón que levanta a cualquiera. Cae con tu mancha al Mercado Las Malvinas del Sur, en Valdiviezo, Ate. Cevichería La Machi... poniendo el sabor como auspiciador oficial de La Nueva cinco cuarenta Radio.";
-export const STARTUP_ORQUESTA_TEXT = "¡Que no te cuenten, vívelo tú mismo! Para que tu compromiso sea inolvidable, ponle el marco musical que todos prefieren: ¡la poderosa Orquesta La Nueva cinco cuarenta! De María Llata y José Mitma. Desde Huarochirí para todo el Perú, somos especialistas en hacer vibrar tus fiestas patronales, matrimonios y aniversarios a nivel nacional. ¡Pura saxocumbia de la buena para zapatear sin parar! Para contratos, comunícate al 933 067 069 o al 900 758 816. ¡Orquesta La Nueva cinco cuarenta... el alma de tu fiesta!";
+export const STARTUP_ORQUESTA_TEXT = "¡Que no te cuenten, vívelo tú mismo! Para que tu compromiso sea inolvidable, ponle el marco musical que todos prefieren: ¡la poderosa Orquesta La Nueva cinco cuarenta! De María Llata y José Mitma. Para todo el Perú y el mundo, somos especialistas en hacer vibrar tus fiestas patronales, matrimonios y aniversarios a nivel internacional. ¡Pura saxocumbia de la buena para zapatear sin parar! Para contratos, comunícate al 933 067 069 o al 900 758 816. ¡Orquesta La Nueva cinco cuarenta... el alma de tu fiesta!";
 export const STARTUP_ENTRUST_TEXT = "¡Así es! Marca tu propio estilo con la verdadera calidad de Gorras Entrust. Visítanos en el corazón de La Victoria: Jirón Antonio Bazo 1284. Para pedidos, catálogo o envíos, escribe al WhatsApp 960 830 305. ¡Anota bien! 960 830 305. Gorras Entrust... ¡Auspiciador oficial de La Nueva cinco cuarenta Radio!";
 
