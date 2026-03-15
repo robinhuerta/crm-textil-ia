@@ -93,6 +93,11 @@ const App: React.FC = () => {
 
 
 
+  // Sincronizar isDjAnnouncing con window._djAnnouncing para que LiveGreetingsView pueda leerlo
+  useEffect(() => {
+    (window as any)._djAnnouncing = isDjAnnouncing || isDjThinking;
+  }, [isDjAnnouncing, isDjThinking]);
+
   // Inicialización: Forzar señal principal al abrir la app + Watchdog
   useEffect(() => {
     localStorage.setItem('radio_stream_url_active', RADIO_STREAM_URL);
@@ -215,6 +220,12 @@ const App: React.FC = () => {
         console.log('🔇 Saludo ignorado (ya reproducido localmente, evitando eco):', greetingId);
         locallyPlayed.delete(greetingId);
         return;
+      }
+
+      // Esperar si ya hay audio TTS reproduciéndose (evitar dos DJs simultáneos)
+      if (isDjAnnouncing) {
+        console.log('🔇 Saludo en cola - DJ ya está al aire, esperando 4s...');
+        await new Promise(r => setTimeout(r, 4000));
       }
 
       console.log('🗣️ Reproduciendo saludo:', greeting);

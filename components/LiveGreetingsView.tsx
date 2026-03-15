@@ -321,6 +321,11 @@ const LiveGreetingsView: React.FC = () => {
 
     // Función para reproducir localmente (Modo Offline / Forzado)
     const playGreetingLocally = async (greeting: LiveGreeting) => {
+        // Esperar si el DJ global ya está al aire (evitar dos audios simultáneos)
+        if ((window as any)._djAnnouncing) {
+            console.log('🔇 Saludo local en espera - DJ global activo, esperando 4s...');
+            await new Promise(r => setTimeout(r, 4000));
+        }
         if (!audioCtxRef.current) {
             audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         }
