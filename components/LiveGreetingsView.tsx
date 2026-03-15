@@ -449,13 +449,14 @@ const LiveGreetingsView: React.FC = () => {
         window.speechSynthesis.cancel();
         setIsPlayingPreview(false);
 
+        const greetingTimestamp = new Date().toISOString();
         const newGreeting: LiveGreeting = {
             id: Date.now().toString(),
             from: previewFormData.from.trim(),
             to: previewFormData.to.trim(),
             message: enhancedPreview,
             status: 'pending',
-            timestamp: new Date().toISOString()
+            timestamp: greetingTimestamp
         };
 
         setGreetings([newGreeting, ...greetings]);
@@ -463,10 +464,10 @@ const LiveGreetingsView: React.FC = () => {
         setIsPreviewingText(false);
         setEnhancedPreview(null);
 
-        // Marcar como reproducido localmente (evitar eco)
+        // Marcar como reproducido localmente (evitar eco) - usar timestamp que Supabase preserva
         if (!(window as any)._locallyPlayedIds) (window as any)._locallyPlayedIds = new Set();
-        (window as any)._locallyPlayedIds.add(newGreeting.id);
-        setTimeout(() => (window as any)._locallyPlayedIds?.delete(newGreeting.id), 15000);
+        (window as any)._locallyPlayedIds.add(greetingTimestamp);
+        setTimeout(() => (window as any)._locallyPlayedIds?.delete(greetingTimestamp), 15000);
 
         playGreetingLocally(newGreeting);
 
@@ -489,7 +490,7 @@ const LiveGreetingsView: React.FC = () => {
                 from_name: greeting.from || 'Anónimo',
                 to_name: greeting.to || 'Todos',
                 message: greeting.message || '',
-                created_at: new Date().toISOString(),
+                created_at: greeting.timestamp || new Date().toISOString(),
                 is_played: false
             };
 
