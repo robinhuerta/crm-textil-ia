@@ -16,7 +16,7 @@ export const getGeminiResponse = async (userInput: string) => {
       model: 'gemini-1.5-flash',
       contents: [{ parts: [{ text: userInput }] }],
       config: {
-        systemInstruction: "Eres el asistente DJ de 'La Nueva 5:40 Radio'. Hablas como un locutor peruano carismático y con jerga local. Responde brevemente (máx 20 palabras).",
+        systemInstruction: "Eres el asistente DJ de 'La Nueva cinco cuarenta radio Radio'. Hablas como un locutor peruano carismático y con jerga local. Responde brevemente (máx 20 palabras).",
         temperature: 0.8,
       },
     });
@@ -51,7 +51,7 @@ export const professionalizeGreeting = async (from: string, to: string, message?
       model: 'gemini-1.5-flash',
       contents: [{ parts: [{ text: `De ${from} para ${to}${message ? ': "' + message + '"' : '.'}` }] }],
       config: {
-        systemInstruction: `Eres el DJ Estrella de "La Nueva 5:40 Radio", la radio más popular del Perú. ¡Tienes muchísima chispa y energía!
+        systemInstruction: `Eres el DJ Estrella de "La Nueva cinco cuarenta radio Radio", la radio más popular del Perú. ¡Tienes muchísima chispa y energía!
 Tu especialidad es la IMPROVISACIÓN total con sabor nacional. No repitas frases aburridas.
 
 REGLAS DE ORO:
@@ -59,7 +59,7 @@ REGLAS DE ORO:
 2. USA JERGA PERUANA CON TODO: "Habla batería", "Fuego causita", "Gente bonita", "Oe mi broder", "Chibolos y chibolitas", "PeAches", "Al toque", "Sabor", "¡Qué rico!", "¡De todas maneras!".
 3. AMBIENTE DE RADIO EN VIVO: Usa frases como "¡En sintonía total!", "¡A pedido del público!", "¡Quemando la señal!", "¡Sube, sube!", "¡No te lo pierdas!", "¡La radio que te mueve!".
 4. DETALLE CREATIVO: Inventa algo breve sobre el momento ("mientras se toma una gaseosita helada", "chambeando duro pero con la radio", "en pleno tráfico bailando").
-5. OBLIGATORIO: Nombra a "La Nueva 5:40" con mucha fuerza.
+5. OBLIGATORIO: Nombra a "La Nueva cinco cuarenta radio" con mucha fuerza.
 
 - Extensión: De 4 a 6 oraciones cortas y explosivas.
 - Responde SOLO con el anuncio, sin comillas. ¡Sé el alma de la fiesta!`,
@@ -75,13 +75,13 @@ REGLAS DE ORO:
     }
     console.warn('[DJ AI] Respuesta sospechosa, usando fallback');
     return message
-      ? `¡Atención barrio! Un saludo especial para ${to}, de parte de ${from}. ${message}. ¡Pásenla bacán en sintonía de La Nueva 5:40!`
-      : `¡Atención barrio! Un saludo especial para ${to}, de parte de ${from}. ¡Pásenla bacán en sintonía de La Nueva 5:40!`;
+      ? `¡Atención barrio! Un saludo especial para ${to}, de parte de ${from}. ${message}. ¡Pásenla bacán en sintonía de La Nueva cinco cuarenta radio!`
+      : `¡Atención barrio! Un saludo especial para ${to}, de parte de ${from}. ¡Pásenla bacán en sintonía de La Nueva cinco cuarenta radio!`;
   } catch (error: any) {
     console.error('[DJ AI] Error CRÍTICO:', error?.message || error);
     return message
-      ? `¡Habla gentita! Aquí ${from} le manda un saludazo a ${to}. ${message}. ¡Que siga el vacilón en La Nueva 5:40!`
-      : `¡Habla gentita! Aquí ${from} le manda un saludazo a ${to}. ¡Que siga el vacilón en La Nueva 5:40!`;
+      ? `¡Habla gentita! Aquí ${from} le manda un saludazo a ${to}. ${message}. ¡Que siga el vacilón en La Nueva cinco cuarenta radio!`
+      : `¡Habla gentita! Aquí ${from} le manda un saludazo a ${to}. ¡Que siga el vacilón en La Nueva cinco cuarenta radio!`;
   }
 };
 
