@@ -443,9 +443,11 @@ const App: React.FC = () => {
       } else if (type === 'hourly') {
         const now = new Date();
         const horaStr = now.toLocaleTimeString('es-PE', { hour: 'numeric', minute: '2-digit', hour12: true });
-        // Antes de las 8am usar scripts matutinos cortos (hora escolar)
-        const isMorning = now.getHours() < 8;
-        const scripts = isMorning
+        // Antes de las 8am en días de semana (lunes-viernes) usar scripts matutinos del colegio
+        const hour = now.getHours();
+        const dayOfWeek = now.getDay(); // 0=domingo, 6=sábado
+        const isSchoolMorning = hour < 8 && dayOfWeek >= 1 && dayOfWeek <= 5;
+        const scripts = isSchoolMorning
           ? MORNING_HOURLY_SCRIPTS
           : JSON.parse(localStorage.getItem('radio_hourly_scripts') || JSON.stringify(DEFAULT_HOURLY_SCRIPTS));
         baseText = scripts[Math.floor(Math.random() * scripts.length)].replace("{hora}", horaStr);
