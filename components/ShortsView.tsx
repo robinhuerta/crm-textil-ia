@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { RadioShort } from '../types';
-import { MOCK_SHORTS, LA_MACHI_DIALOGUES, ORQUESTA_DIALOGUES, ENTRUST_DIALOGUES } from '../constants';
+import { MOCK_SHORTS, LA_MACHI_DIALOGUES, ORQUESTA_DIALOGUES, ENTRUST_DIALOGUES, TODO_GORRAS_DIALOGUES } from '../constants';
 import { generateGeminiSpeech, decodeGeminiAudio, playGeminiAudio } from '../services/geminiTTSService';
 
 // Datos de cumpleañeros
@@ -525,6 +525,37 @@ const ShortsView: React.FC = () => {
                       </p>
                       <p className="text-white text-xs md:text-sm leading-relaxed italic font-medium">
                         "{ORQUESTA_DIALOGUES[activeDialogue].text}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {short.id === 'ad-todo-gorras' && (
+                <div className="pointer-events-auto w-[90%] md:w-auto flex flex-col items-center mx-auto">
+                  <button
+                    onClick={() => speakWithGemini(TODO_GORRAS_DIALOGUES)}
+                    className={`flex items-center justify-center gap-3 py-3 px-10 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-2xl ${isGeminiSpeaking || isGeminiThinking
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-gradient-to-r from-red-600 to-red-400 text-white hover:scale-105 active:scale-95'
+                      }`}
+                  >
+                    {isGeminiThinking ? (
+                      <><i className="fa-solid fa-spinner fa-spin text-lg"></i> Sintonizando...</>
+                    ) : isGeminiSpeaking ? (
+                      <><i className="fa-solid fa-stop text-lg"></i> Detener Spot</>
+                    ) : (
+                      <><i className="fa-solid fa-industry text-lg"></i> Escuchar Spot 🧢</>
+                    )}
+                  </button>
+
+                  {isGeminiSpeaking && activeDialogue !== -1 && (
+                    <div className="mt-4 bg-black/80 backdrop-blur-[20px] p-5 rounded-[2rem] border border-white/20 animate-fadeInUp max-w-md shadow-2xl">
+                      <p className="text-red-400 text-[10px] font-black uppercase mb-1 tracking-widest text-center">
+                        {TODO_GORRAS_DIALOGUES[activeDialogue].speaker === 'dj1' ? 'DJ Principal' : 'DJ Asistente'}
+                      </p>
+                      <p className="text-white text-xs md:text-sm leading-relaxed italic font-medium">
+                        "{TODO_GORRAS_DIALOGUES[activeDialogue].text}"
                       </p>
                     </div>
                   )}
