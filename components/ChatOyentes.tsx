@@ -39,8 +39,28 @@ const ChatOyentes: React.FC = () => {
   const [nickDraft, setNickDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [chatHeight, setChatHeight] = useState('calc(100dvh - 11rem)');
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Ajustar altura al teclado en móvil usando visualViewport
+  useEffect(() => {
+    const updateHeight = () => {
+      const vp = window.visualViewport;
+      if (!vp) return;
+      const isDesktop = window.innerWidth >= 1024;
+      const topOffset = isDesktop ? 0 : 90;    // header móvil
+      const bottomOffset = isDesktop ? 176 : 132; // nav + player
+      setChatHeight(`${Math.max(200, vp.height - topOffset - bottomOffset)}px`);
+    };
+    window.visualViewport?.addEventListener('resize', updateHeight);
+    window.visualViewport?.addEventListener('scroll', updateHeight);
+    updateHeight();
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateHeight);
+      window.visualViewport?.removeEventListener('scroll', updateHeight);
+    };
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem(NICKNAME_KEY);
@@ -160,7 +180,7 @@ const ChatOyentes: React.FC = () => {
 
   // --- PANTALLA: Chat estilo Telegram ---
   return (
-    <div className="flex flex-col max-w-2xl mx-auto" style={{ height: 'calc(100dvh - 11rem)' }}>
+    <div className="flex flex-col max-w-2xl mx-auto" style={{ height: chatHeight }}>
 
       {/* Header estilo Telegram */}
       <div
