@@ -40,6 +40,7 @@ const ChatOyentes: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [chatHeight, setChatHeight] = useState('calc(100dvh - 11rem)');
+  const [showEmojis, setShowEmojis] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -294,7 +295,28 @@ const ChatOyentes: React.FC = () => {
       </div>
 
       {/* Input estilo Telegram */}
-      <div className="pt-3">
+      <div className="pt-2">
+        {/* Panel de emojis */}
+        {showEmojis && (
+          <div
+            className="mb-2 p-2 rounded-2xl grid grid-cols-8 gap-1"
+            style={{ backgroundColor: '#17212b', border: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            {['😀','😂','🥰','😍','😎','🤩','😭','😅',
+              '👍','👏','🙌','🔥','❤️','💙','⭐','🎵',
+              '🎶','🎤','📻','🏆','💪','🙏','👋','😱',
+              '🤣','😊','😇','🥳','🎉','🎊','💃','🕺'].map(e => (
+              <button
+                key={e}
+                onClick={() => { setInput(prev => prev + e); setShowEmojis(false); inputRef.current?.focus(); }}
+                className="text-xl p-1 rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors"
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div
           className="flex items-center gap-2 px-3 py-2 rounded-full shadow-lg"
           style={{ backgroundColor: '#17212b', border: '1px solid rgba(255,255,255,0.07)' }}
@@ -314,6 +336,13 @@ const ChatOyentes: React.FC = () => {
             onKeyDown={handleKeyDown}
             disabled={sending}
           />
+          {/* Botón emoji */}
+          <button
+            onClick={() => setShowEmojis(p => !p)}
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-slate-400 hover:text-yellow-400 transition-colors"
+          >
+            <span className="text-lg">😊</span>
+          </button>
           <button
             onClick={handleSend}
             disabled={!input.trim() || sending}
