@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { LiveGreeting } from '../types';
-import { GREETINGS_WHATSAPP, ADMIN_PASSWORD, STARTUP_COMMERCIAL_TEXT } from '../constants';
+import { GREETINGS_WHATSAPP, ADMIN_PASSWORD, STARTUP_COMMERCIAL_TEXT, STARTUP_ORQUESTA_TEXT, STARTUP_ENTRUST_TEXT, STARTUP_TODO_GORRAS_TEXT } from '../constants';
 import { generateGeminiSpeech, decodeGeminiAudio, playGeminiAudio } from '../services/geminiTTSService';
 import { broadcastGreeting, onRadioConnectionChange, supabase, supabaseAnonKey, uploadVoiceGreeting } from '../services/supabase';
 import { professionalizeGreeting } from '../services/geminiService';
@@ -629,8 +629,8 @@ const LiveGreetingsView: React.FC = () => {
     };
 
     // PREVIEW COMERCIAL (Auditoría)
-    const previewCommercial = async () => {
-        const btn = document.getElementById('btn-preview-commercial');
+    const previewCommercialById = async (id: string, label: string, text: string) => {
+        const btn = document.getElementById(id);
         if (btn) btn.innerHTML = '⏳ Generando...';
 
         if (!audioCtxRef.current) {
@@ -639,13 +639,13 @@ const LiveGreetingsView: React.FC = () => {
         if (audioCtxRef.current.state === 'suspended') await audioCtxRef.current.resume();
 
         try {
-            const base64 = await generateGeminiSpeech(STARTUP_COMMERCIAL_TEXT, 'Kore');
+            const base64 = await generateGeminiSpeech(text, 'Kore');
             if (base64 && audioCtxRef.current) {
                 const buffer = await decodeGeminiAudio(base64, audioCtxRef.current);
                 if (buffer) {
                     playGeminiAudio(buffer, audioCtxRef.current);
                     if (btn) btn.innerHTML = '▶️ Reproduciendo...';
-                    setTimeout(() => { if (btn) btn.innerHTML = '🔊 Auditar Comercial La Machi'; }, 15000);
+                    setTimeout(() => { if (btn) btn.innerHTML = `🔊 ${label}`; }, 15000);
                 }
             }
         } catch (e) {
@@ -653,6 +653,11 @@ const LiveGreetingsView: React.FC = () => {
             if (btn) btn.innerHTML = '❌ Error';
         }
     };
+
+    const previewCommercial = () => previewCommercialById('btn-preview-commercial', 'Auditar Comercial La Machi', STARTUP_COMMERCIAL_TEXT);
+    const previewOrquesta = () => previewCommercialById('btn-preview-orquesta', 'Auditar Orquesta 5:40', STARTUP_ORQUESTA_TEXT);
+    const previewEntrust = () => previewCommercialById('btn-preview-entrust', 'Auditar Gorras Entrust', STARTUP_ENTRUST_TEXT);
+    const previewTodoGorras = () => previewCommercialById('btn-preview-todo-gorras', 'Auditar Todo Para Gorras', STARTUP_TODO_GORRAS_TEXT);
 
     const stopReading = () => {
         if (audioSourceRef.current) {
@@ -726,13 +731,36 @@ const LiveGreetingsView: React.FC = () => {
                                 Saludos en Vivo
                             </div>
 
-                            <button
-                                id="btn-preview-commercial"
-                                onClick={previewCommercial}
-                                className="mb-6 mx-auto block text-[10px] text-[#a3cf33] hover:text-white underline uppercase tracking-widest border border-[#a3cf33]/30 px-4 py-2 rounded-full hover:bg-[#a3cf33]/10 transition-all"
-                            >
-                                🔊 Auditar Comercial La Machi
-                            </button>
+                            <div className="mb-6 flex flex-wrap justify-center gap-2">
+                                <button
+                                    id="btn-preview-commercial"
+                                    onClick={previewCommercial}
+                                    className="text-[10px] text-[#a3cf33] hover:text-white underline uppercase tracking-widest border border-[#a3cf33]/30 px-4 py-2 rounded-full hover:bg-[#a3cf33]/10 transition-all"
+                                >
+                                    🔊 Auditar La Machi
+                                </button>
+                                <button
+                                    id="btn-preview-orquesta"
+                                    onClick={previewOrquesta}
+                                    className="text-[10px] text-orange-400 hover:text-white underline uppercase tracking-widest border border-orange-400/30 px-4 py-2 rounded-full hover:bg-orange-400/10 transition-all"
+                                >
+                                    🎺 Auditar Orquesta 5:40
+                                </button>
+                                <button
+                                    id="btn-preview-entrust"
+                                    onClick={previewEntrust}
+                                    className="text-[10px] text-blue-400 hover:text-white underline uppercase tracking-widest border border-blue-400/30 px-4 py-2 rounded-full hover:bg-blue-400/10 transition-all"
+                                >
+                                    🧢 Auditar Gorras Entrust
+                                </button>
+                                <button
+                                    id="btn-preview-todo-gorras"
+                                    onClick={previewTodoGorras}
+                                    className="text-[10px] text-red-400 hover:text-white underline uppercase tracking-widest border border-red-400/30 px-4 py-2 rounded-full hover:bg-red-400/10 transition-all"
+                                >
+                                    🏭 Auditar Todo Para Gorras
+                                </button>
+                            </div>
 
                             <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4">
                                 Saluditos <span className="bg-gradient-to-r from-[#a3cf33] to-green-400 bg-clip-text text-transparent">Al Aire</span>
