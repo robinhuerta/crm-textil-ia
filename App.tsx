@@ -217,6 +217,10 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkFarandula = async () => {
       if (!isPlaying || !audioCtxRef.current) return;
+      // No interrumpir si el DJ ya está hablando
+      if (isDjAnnouncing || isDjThinking) return;
+      if ((window as any)._djAnnouncing) return;
+
       const now = new Date();
       const hour = now.getHours();
       const min = now.getMinutes();
@@ -233,6 +237,7 @@ const App: React.FC = () => {
 
       try {
         await initAudio();
+        setIsDjThinking(true);
         const res = await fetch('/.netlify/functions/farandula');
         const data = await res.json();
         const headlines: string[] = (data.articles || []).map((a: any) => `${a.title}. ${a.description}`);
@@ -242,25 +247,36 @@ const App: React.FC = () => {
         if (base64 && audioCtxRef.current) {
           const buffer = await decodeGeminiAudio(base64, audioCtxRef.current);
           if (buffer) {
-            playGeminiAudio(buffer, audioCtxRef.current);
+            setIsDjThinking(false);
+            setIsDjAnnouncing(true);
+            window.dispatchEvent(new CustomEvent('radio_volume_duck', { detail: { duck: true } }));
+            playGeminiAudio(buffer, audioCtxRef.current, undefined, () => {
+              setIsDjAnnouncing(false);
+              window.dispatchEvent(new CustomEvent('radio_volume_duck', { detail: { duck: false } }));
+            });
             localStorage.setItem(playedKey, 'true');
             console.log(`📰 [Farándula] Segmento ${hour}:00 emitido`);
-            // Limpiar claves de otras horas
             setTimeout(() => {
               [7, 9, 11].forEach(h => {
                 if (h !== hour) localStorage.removeItem(`farandula_played_${h}`);
               });
             }, 5000);
+          } else {
+            setIsDjThinking(false);
           }
+        } else {
+          setIsDjThinking(false);
         }
       } catch (e) {
         console.error('[Farándula] Error:', e);
+        setIsDjThinking(false);
+        setIsDjAnnouncing(false);
       }
     };
 
     const interval = setInterval(checkFarandula, 60000);
     return () => clearInterval(interval);
-  }, [isPlaying, initAudio]);
+  }, [isPlaying, isDjAnnouncing, isDjThinking, initAudio]);
 
   // Escuchar saludos en vivo (Global Broadcast)
   useEffect(() => {
