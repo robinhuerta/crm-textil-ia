@@ -160,7 +160,7 @@ const ChatOyentes: React.FC = () => {
 
   // --- PANTALLA: Chat estilo Telegram ---
   return (
-    <div className="flex flex-col max-w-2xl mx-auto" style={{ height: 'calc(100vh - 11rem)' }}>
+    <div className="flex flex-col max-w-2xl mx-auto" style={{ height: 'calc(100dvh - 11rem)' }}>
 
       {/* Header estilo Telegram */}
       <div
