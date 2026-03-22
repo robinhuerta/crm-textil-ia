@@ -223,6 +223,60 @@ export const broadcastGreeting = async (greeting: any): Promise<{ success: boole
     return { success: false, error: finalError };
 };
 
+// --- LISTENER CHAT ---
+export interface ChatMessage {
+    id: string;
+    nickname: string;
+    message: string;
+    created_at: string;
+}
+
+let chatChannel: any = null;
+let chatListeners: ((msg: ChatMessage) => void)[] = [];
+
+export const sendChatMessage = async (nickname: string, message: string): Promise<boolean> => {
+    const { error } = await supabase.from('listener_chat').insert([{ nickname, message }]);
+    if (error) {
+        console.error('❌ [Chat] Error enviando mensaje:', error.message);
+        return false;
+    }
+    return true;
+};
+
+export const getChatHistory = async (limit = 50): Promise<ChatMessage[]> => {
+    const { data, error } = await supabase
+        .from('listener_chat')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(limit);
+    if (error || !data) return [];
+    return data as ChatMessage[];
+};
+
+export const subscribeToChatMessages = (callback: (msg: ChatMessage) => void) => {
+    chatListeners.push(callback);
+
+    if (!chatChannel) {
+        chatChannel = supabase.channel('listener_chat_channel')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'listener_chat' },
+                (payload) => {
+                    chatListeners.forEach(cb => cb(payload.new as ChatMessage));
+                }
+            )
+            .subscribe();
+    }
+
+    return () => {
+        chatListeners = chatListeners.filter(l => l !== callback);
+        if (chatListeners.length === 0 && chatChannel) {
+            supabase.removeChannel(chatChannel);
+            chatChannel = null;
+        }
+    };
+};
+
 export const subscribeToRadioEvents = (callback: (payload: any) => void) => {
     listeners.push(callback);
     setupRadioChannel();

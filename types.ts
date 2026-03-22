@@ -9,7 +9,8 @@ export enum NavTab {
   MUSIC = 'music',
   POLLS = 'polls',
   SPOTIFY = 'spotify',
-  GREETINGS = 'greetings'
+  GREETINGS = 'greetings',
+  LISTENER_CHAT = 'listener_chat'
 }
 
 export interface RadioEvent {

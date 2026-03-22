@@ -16,6 +16,7 @@ const MusicLibraryView = lazy(() => import('./components/MusicLibraryView'));
 const PollsView = lazy(() => import('./components/PollsView'));
 const LiveGreetingsView = lazy(() => import('./components/LiveGreetingsView'));
 const SettingsView = lazy(() => import('./components/SettingsView'));
+const ChatOyentes = lazy(() => import('./components/ChatOyentes'));
 
 import { GoogleGenAI, Modality } from "@google/genai";
 import { DEFAULT_HOURLY_SCRIPTS, MADRUGADA_SCRIPTS, MORNING_HOURLY_SCRIPTS, SATURDAY_NIGHT_SCRIPTS, SUNDAY_FAMILY_SCRIPTS, DEFAULT_JINGLES, MOCK_EVENTS, RADIO_STREAM_URL } from './constants';
@@ -575,6 +576,7 @@ const App: React.FC = () => {
           <NavItem icon="fa-video" label="5:40 TV" color="#FF5252" active={activeTab === NavTab.VIDEOS} onClick={() => setActiveTab(NavTab.VIDEOS)} />
           <NavItem icon="fa-calendar-alt" label="Agenda" color="#E040FB" active={activeTab === NavTab.EVENTS} onClick={() => setActiveTab(NavTab.EVENTS)} hasIndicator={hasUpcomingEvents} />
           <NavItem icon="fa-robot" label="Asistente AI" color="#00E5FF" active={activeTab === NavTab.CHAT} onClick={() => setActiveTab(NavTab.CHAT)} />
+          <NavItem icon="fa-comments" label="Chat Oyentes" color="#a3cf33" active={activeTab === NavTab.LISTENER_CHAT} onClick={() => setActiveTab(NavTab.LISTENER_CHAT)} />
           <NavItem icon="fa-gear" label="Settings" color="#78909C" active={activeTab === NavTab.SETTINGS} onClick={() => setActiveTab(NavTab.SETTINGS)} />
         </nav>
       </aside>
@@ -641,6 +643,7 @@ const App: React.FC = () => {
               {activeTab === NavTab.MUSIC && <MusicLibraryView />}
               {activeTab === NavTab.POLLS && <PollsView />}
               {activeTab === NavTab.GREETINGS && <LiveGreetingsView />}
+              {activeTab === NavTab.LISTENER_CHAT && <ChatOyentes />}
               {activeTab === NavTab.SETTINGS && <SettingsView />}
             </Suspense>
           </ErrorBoundary>
@@ -664,11 +667,12 @@ const App: React.FC = () => {
           <i className="fa-solid fa-robot text-2xl text-slate-900"></i>
         </button>
 
-        {/* Derecha del centro - 3 botones */}
+        {/* Derecha del centro - 4 botones */}
         <div className="flex items-center gap-1">
           <MobileIcon icon="fa-music" color="#E0E0E0" active={activeTab === NavTab.MUSIC} onClick={() => setActiveTab(NavTab.MUSIC)} />
           <MobileIcon icon="fa-star" color="#FF9800" active={activeTab === NavTab.POLLS} onClick={() => setActiveTab(NavTab.POLLS)} />
           <MobileIcon icon="fa-calendar-alt" color="#E040FB" active={activeTab === NavTab.EVENTS} onClick={() => setActiveTab(NavTab.EVENTS)} hasIndicator={hasUpcomingEvents} />
+          <MobileIcon icon="fa-comments" color="#a3cf33" active={activeTab === NavTab.LISTENER_CHAT} onClick={() => setActiveTab(NavTab.LISTENER_CHAT)} />
         </div>
       </nav>
 

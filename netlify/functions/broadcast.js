@@ -21,7 +21,7 @@ exports.handler = async (event, context) => {
             "apikey": SUPABASE_ANON_KEY,
             "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
             "Prefer": "return=minimal"
-        };
+        };so 
 
         // 5. INTENTO 1: radio_greetings
         let response = await fetch(`${SUPABASE_URL}/rest/v1/radio_greetings`, {
