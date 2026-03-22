@@ -18,6 +18,23 @@ const getAvatarColor = (nickname: string) => {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 };
 
+// Sonido de notificación (Web Audio API, sin archivos externos)
+const playNotificationSound = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.setValueAtTime(1100, ctx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.25);
+  } catch {}
+};
+
 // Agrupar mensajes consecutivos del mismo autor
 const groupMessages = (msgs: ChatMessage[]) => {
   const groups: { author: string; color: string; msgs: ChatMessage[] }[] = [];
@@ -89,6 +106,8 @@ const ChatOyentes: React.FC = () => {
           updated[tempIdx] = msg;
           return updated;
         }
+        // Sonido solo si es de otro oyente
+        if (msg.nickname !== nickname) playNotificationSound();
         return [...prev, msg];
       });
     });
