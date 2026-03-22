@@ -145,12 +145,15 @@ const App: React.FC = () => {
       // La Machi: 08:20, 13:20, 19:20
       // Orquesta: 10:20, 16:20, 21:20
       // Entrust: 12:20, 17:20, 23:20
+      // Todo Para Gorras: 09:20, 14:20, 20:20
       if (hour === 8 || hour === 13 || hour === 19) {
         adTag = "MACHI";
       } else if (hour === 10 || hour === 16 || hour === 21) {
         adTag = "ORQUESTA";
       } else if (hour === 12 || hour === 17 || hour === 23) {
         adTag = "ENTRUST";
+      } else if (hour === 9 || hour === 14 || hour === 20) {
+        adTag = "TODO_GORRAS";
       } else {
         return;
       }
@@ -175,6 +178,7 @@ const App: React.FC = () => {
           if (adTag === "MACHI") adText = constants.STARTUP_COMMERCIAL_TEXT;
           else if (adTag === "ORQUESTA") adText = constants.STARTUP_ORQUESTA_TEXT;
           else if (adTag === "ENTRUST") adText = constants.STARTUP_ENTRUST_TEXT;
+          else if (adTag === "TODO_GORRAS") adText = constants.STARTUP_TODO_GORRAS_TEXT;
 
           const base64 = await generateGeminiSpeech(adText, 'Kore');
           if (base64 && audioCtxRef.current) {
