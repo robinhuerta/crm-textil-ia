@@ -56,7 +56,20 @@ const ChatOyentes: React.FC = () => {
     });
 
     const unsub = subscribeToChatMessages((msg) => {
-      setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg]);
+      setMessages(prev => {
+        // Si ya existe el ID real, ignorar
+        if (prev.some(m => m.id === msg.id)) return prev;
+        // Reemplazar el mensaje temporal del mismo autor+texto si existe
+        const tempIdx = prev.findIndex(
+          m => m.id.startsWith('temp_') && m.nickname === msg.nickname && m.message === msg.message
+        );
+        if (tempIdx !== -1) {
+          const updated = [...prev];
+          updated[tempIdx] = msg;
+          return updated;
+        }
+        return [...prev, msg];
+      });
     });
     return unsub;
   }, [nickname]);
@@ -77,10 +90,25 @@ const ChatOyentes: React.FC = () => {
     if (!text || sending || !nickname) return;
     setSending(true);
     setInput('');
+
+    // Mostrar el mensaje inmediatamente (optimistic update)
+    const tempMsg: ChatMessage = {
+      id: `temp_${Date.now()}`,
+      nickname,
+      message: text,
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, tempMsg]);
+
     const ok = await sendChatMessage(nickname, text);
     setSending(false);
-    if (!ok) setInput(text);
-    else inputRef.current?.focus();
+    if (!ok) {
+      // Si falla, quitar el mensaje temporal y restaurar el input
+      setMessages(prev => prev.filter(m => m.id !== tempMsg.id));
+      setInput(text);
+    } else {
+      inputRef.current?.focus();
+    }
   }, [input, sending, nickname]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
