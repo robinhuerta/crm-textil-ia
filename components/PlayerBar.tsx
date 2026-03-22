@@ -11,6 +11,8 @@ interface PlayerBarProps {
 const PlayerBar: React.FC<PlayerBarProps> = ({ isPlaying, onPlayToggle }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const loadedSourceRef = useRef<string>("");
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -33,6 +35,27 @@ const PlayerBar: React.FC<PlayerBarProps> = ({ isPlaying, onPlayToggle }) => {
       isLive: true
     };
   });
+
+  const setupAudioCompressor = () => {
+    if (!audioRef.current || sourceNodeRef.current) return;
+    try {
+      const ctx = new AudioContext();
+      audioCtxRef.current = ctx;
+      const source = ctx.createMediaElementSource(audioRef.current);
+      sourceNodeRef.current = source;
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-18, ctx.currentTime);
+      compressor.knee.setValueAtTime(30, ctx.currentTime);
+      compressor.ratio.setValueAtTime(12, ctx.currentTime);
+      compressor.attack.setValueAtTime(0.003, ctx.currentTime);
+      compressor.release.setValueAtTime(0.25, ctx.currentTime);
+      source.connect(compressor);
+      compressor.connect(ctx.destination);
+      if (ctx.state === 'suspended') ctx.resume();
+    } catch (e) {
+      console.warn('Web Audio API no disponible:', e);
+    }
+  };
 
   const goBackToLive = () => {
     const mainUrl = localStorage.getItem('radio_url_main_config') || RADIO_STREAM_URL;
@@ -146,7 +169,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({ isPlaying, onPlayToggle }) => {
         ref={audioRef}
         preload="auto"
         crossOrigin="anonymous"
-        onPlaying={() => { setIsLoading(false); setHasError(false); }}
+        onPlaying={() => { setIsLoading(false); setHasError(false); setupAudioCompressor(); }}
         onWaiting={() => setIsLoading(true)}
         onError={() => { setIsLoading(false); setHasError(true); }}
       />
