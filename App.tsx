@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { NavTab, RadioEvent } from './types';
+import { generateFarandulaSegment } from './services/geminiService';
 
 // Componentes críticos - carga inmediata
 import HomeView from './components/HomeView';
@@ -209,6 +210,55 @@ const App: React.FC = () => {
     // Also check on mount
     setTimeout(checkCommercial, 5000);
 
+    return () => clearInterval(interval);
+  }, [isPlaying, initAudio]);
+
+  // FARÁNDULA: noticias de espectáculos a las 7:00, 9:00 y 11:00
+  useEffect(() => {
+    const checkFarandula = async () => {
+      if (!isPlaying || !audioCtxRef.current) return;
+      const now = new Date();
+      const hour = now.getHours();
+      const min = now.getMinutes();
+      if (min !== 0 || ![7, 9, 11].includes(hour)) return;
+
+      const lockKey = `farandula_lock_${hour}`;
+      const playedKey = `farandula_played_${hour}`;
+      if (localStorage.getItem(playedKey) === 'true') return;
+      const lockTime = localStorage.getItem(lockKey);
+      if (lockTime && Date.now() - parseInt(lockTime) < 30000) return;
+
+      localStorage.setItem(lockKey, String(Date.now()));
+      console.log(`📰 [Farándula] Iniciando segmento ${hour}:00`);
+
+      try {
+        await initAudio();
+        const res = await fetch('/.netlify/functions/farandula');
+        const data = await res.json();
+        const headlines: string[] = (data.articles || []).map((a: any) => `${a.title}. ${a.description}`);
+        const segment = await generateFarandulaSegment(headlines);
+
+        const base64 = await generateGeminiSpeech(segment, 'Kore');
+        if (base64 && audioCtxRef.current) {
+          const buffer = await decodeGeminiAudio(base64, audioCtxRef.current);
+          if (buffer) {
+            playGeminiAudio(buffer, audioCtxRef.current);
+            localStorage.setItem(playedKey, 'true');
+            console.log(`📰 [Farándula] Segmento ${hour}:00 emitido`);
+            // Limpiar claves de otras horas
+            setTimeout(() => {
+              [7, 9, 11].forEach(h => {
+                if (h !== hour) localStorage.removeItem(`farandula_played_${h}`);
+              });
+            }, 5000);
+          }
+        }
+      } catch (e) {
+        console.error('[Farándula] Error:', e);
+      }
+    };
+
+    const interval = setInterval(checkFarandula, 60000);
     return () => clearInterval(interval);
   }, [isPlaying, initAudio]);
 

@@ -85,3 +85,41 @@ REGLAS DE ORO:
   }
 };
 
+// Genera un segmento radial de farándula a partir de titulares de noticias
+export const generateFarandulaSegment = async (headlines: string[]): Promise<string> => {
+  const apiKey = process.env.API_KEY;
+  const fallback = `¡Buenos días gente bonita! Aquí en La Nueva cinco cuarenta radio te traemos lo último del espectáculo. ¡El mundo de la farándula no para y nosotros tampoco! Sigue con nosotros para más novedades.`;
+
+  if (!apiKey || apiKey.trim() === '') return fallback;
+  if (!headlines.length) return fallback;
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const headlinesText = headlines.map((h, i) => `${i + 1}. ${h}`).join('\n');
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-1.5-flash',
+      contents: [{ parts: [{ text: headlinesText }] }],
+      config: {
+        systemInstruction: `Eres el DJ de "La Nueva cinco cuarenta radio" con la sección de FARÁNDULA Y ESPECTÁCULOS. Con estos titulares de noticias reales de hoy, crea un segmento radial divertido al estilo locutor peruano.
+
+REGLAS:
+1. Máximo 5 oraciones en total. Breve pero impactante.
+2. Usa jerga peruana: "¡Fuego causa!", "¡Habla barrio!", "¡Oe oe!", "¡Al toque!".
+3. Menciona 2 o 3 de las noticias de forma natural, como si fuera chisme.
+4. Empieza siempre con "¡Buenos días gente bonita de La Nueva cinco cuarenta radio! Aquí el chisme del espectáculo de hoy..."
+5. Termina con "¡Y eso es todo el chisme de hoy! Sigue con nosotros en La Nueva cinco cuarenta radio."
+6. Responde SOLO con el texto radial, sin títulos ni comillas extra.`,
+        temperature: 1.1,
+        maxOutputTokens: 350,
+      },
+    });
+
+    const result = response.text?.trim();
+    return result && result.length > 30 ? result : fallback;
+  } catch (e) {
+    console.error('[Farándula] Error Gemini:', e);
+    return fallback;
+  }
+};
+
