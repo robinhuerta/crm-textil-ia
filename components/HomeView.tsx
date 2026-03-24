@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WHATSAPP_URL, TIKTOK_URL, FACEBOOK_URL, RADIO_STREAM_URL, RADIO_STREAM_ROCK, RADIO_STREAM_CUMBIAS, RADIO_STREAM_HUAYNOS, GREETINGS_WHATSAPP, RADIO_STREAM_SALSA, RADIO_STREAM_VALLENATOS, RADIO_STREAM_BALADAS, RADIO_STREAM_FIESTA } from '../constants';
+import { WHATSAPP_URL, TIKTOK_URL, FACEBOOK_URL, RADIO_STREAM_URL, RADIO_STREAM_ROCK, RADIO_STREAM_CUMBIAS, RADIO_STREAM_HUAYNOS, GREETINGS_WHATSAPP, RADIO_STREAM_SALSA, RADIO_STREAM_VALLENATOS, RADIO_STREAM_BALADAS, RADIO_STREAM_FIESTA, RADIO_STREAM_URVAN, RADIO_STREAM_TECNO, RADIO_STREAM_BOLEROS, RADIO_STREAM_KPOP } from '../constants';
 import { NavTab } from '../types';
 
 interface HomeViewProps {
@@ -124,6 +124,10 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
             <StreamBtn label="Rock" icon="fa-guitar" active={activeStream === RADIO_STREAM_ROCK} color="bg-red-500" onClick={() => switchStream(RADIO_STREAM_ROCK)} />
             <StreamBtn label="Baladas" icon="fa-heart" active={activeStream === RADIO_STREAM_BALADAS} color="bg-rose-500" onClick={() => switchStream(RADIO_STREAM_BALADAS)} />
             <StreamBtn label="Huaynos" icon="fa-compact-disc" active={activeStream === RADIO_STREAM_HUAYNOS} color="bg-orange-500" onClick={() => switchStream(RADIO_STREAM_HUAYNOS)} />
+            <StreamBtn label="Urvan" icon="fa-car" active={activeStream === RADIO_STREAM_URVAN} color="bg-purple-500" onClick={() => switchStream(RADIO_STREAM_URVAN)} />
+            <StreamBtn label="Tecno" icon="fa-bolt" active={activeStream === RADIO_STREAM_TECNO} color="bg-cyan-500" onClick={() => switchStream(RADIO_STREAM_TECNO)} />
+            <StreamBtn label="Boleros" icon="fa-moon" active={activeStream === RADIO_STREAM_BOLEROS} color="bg-pink-700" onClick={() => switchStream(RADIO_STREAM_BOLEROS)} />
+            <StreamBtn label="K-Pop Love" icon="fa-star" active={activeStream === RADIO_STREAM_KPOP} color="bg-fuchsia-500" onClick={() => switchStream(RADIO_STREAM_KPOP)} />
           </div>
         </div>
       </section >
