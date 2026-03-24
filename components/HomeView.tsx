@@ -11,6 +11,23 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
   const [activeStream, setActiveStream] = useState<string>(() => localStorage.getItem('radio_stream_url_active') || RADIO_STREAM_URL);
   const [peruTime, setPeruTime] = useState<string>('');
   const [peruDate, setPeruDate] = useState<string>('');
+  const [nowPlaying, setNowPlaying] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isPlaying) { setNowPlaying(null); return; }
+    const fetch_ = async () => {
+      try {
+        const url = activeStream.split('?')[0];
+        const res = await fetch(`/.netlify/functions/nowplaying?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (data.title) setNowPlaying(data.title);
+        else setNowPlaying(null);
+      } catch { setNowPlaying(null); }
+    };
+    fetch_();
+    const interval = setInterval(fetch_, 30000);
+    return () => clearInterval(interval);
+  }, [isPlaying, activeStream]);
 
   // Reloj en tiempo real - Hora Peruana (UTC-5)
   useEffect(() => {
@@ -116,18 +133,18 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
         <div className="space-y-4">
           <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.5em] text-center lg:text-left mb-2">Señales Disponibles</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StreamBtn label="Principal" icon="fa-tower-broadcast" active={activeStream === RADIO_STREAM_URL} color="bg-[#a3cf33]" onClick={() => switchStream(RADIO_STREAM_URL)} />
-            <StreamBtn label="Fiesta" icon="fa-glass-cheers" active={activeStream === RADIO_STREAM_FIESTA} color="bg-amber-500" onClick={() => switchStream(RADIO_STREAM_FIESTA)} />
-            <StreamBtn label="Cumbias" icon="fa-music" active={activeStream === RADIO_STREAM_CUMBIAS} color="bg-[#3fb4e5]" onClick={() => switchStream(RADIO_STREAM_CUMBIAS)} />
-            <StreamBtn label="Salsa" icon="fa-drum" active={activeStream === RADIO_STREAM_SALSA} color="bg-indigo-500" onClick={() => switchStream(RADIO_STREAM_SALSA)} />
-            <StreamBtn label="Vallenatos" icon="fa-microphone-lines" active={activeStream === RADIO_STREAM_VALLENATOS} color="bg-yellow-500" onClick={() => switchStream(RADIO_STREAM_VALLENATOS)} />
-            <StreamBtn label="Rock" icon="fa-guitar" active={activeStream === RADIO_STREAM_ROCK} color="bg-red-500" onClick={() => switchStream(RADIO_STREAM_ROCK)} />
-            <StreamBtn label="Baladas" icon="fa-heart" active={activeStream === RADIO_STREAM_BALADAS} color="bg-rose-500" onClick={() => switchStream(RADIO_STREAM_BALADAS)} />
-            <StreamBtn label="Huaynos" icon="fa-compact-disc" active={activeStream === RADIO_STREAM_HUAYNOS} color="bg-orange-500" onClick={() => switchStream(RADIO_STREAM_HUAYNOS)} />
-            <StreamBtn label="Urvan" icon="fa-car" active={activeStream === RADIO_STREAM_URVAN} color="bg-purple-500" onClick={() => switchStream(RADIO_STREAM_URVAN)} />
-            <StreamBtn label="Tecno" icon="fa-bolt" active={activeStream === RADIO_STREAM_TECNO} color="bg-cyan-500" onClick={() => switchStream(RADIO_STREAM_TECNO)} />
-            <StreamBtn label="Boleros" icon="fa-moon" active={activeStream === RADIO_STREAM_BOLEROS} color="bg-pink-700" onClick={() => switchStream(RADIO_STREAM_BOLEROS)} />
-            <StreamBtn label="K-Pop Love" icon="fa-star" active={activeStream === RADIO_STREAM_KPOP} color="bg-fuchsia-500" onClick={() => switchStream(RADIO_STREAM_KPOP)} />
+            <StreamBtn label="Principal" icon="fa-tower-broadcast" active={activeStream === RADIO_STREAM_URL} color="bg-[#a3cf33]" onClick={() => switchStream(RADIO_STREAM_URL)} nowPlaying={activeStream === RADIO_STREAM_URL ? nowPlaying : null} />
+            <StreamBtn label="Fiesta" icon="fa-glass-cheers" active={activeStream === RADIO_STREAM_FIESTA} color="bg-amber-500" onClick={() => switchStream(RADIO_STREAM_FIESTA)} nowPlaying={activeStream === RADIO_STREAM_FIESTA ? nowPlaying : null} />
+            <StreamBtn label="Cumbias" icon="fa-music" active={activeStream === RADIO_STREAM_CUMBIAS} color="bg-[#3fb4e5]" onClick={() => switchStream(RADIO_STREAM_CUMBIAS)} nowPlaying={activeStream === RADIO_STREAM_CUMBIAS ? nowPlaying : null} />
+            <StreamBtn label="Salsa" icon="fa-drum" active={activeStream === RADIO_STREAM_SALSA} color="bg-indigo-500" onClick={() => switchStream(RADIO_STREAM_SALSA)} nowPlaying={activeStream === RADIO_STREAM_SALSA ? nowPlaying : null} />
+            <StreamBtn label="Vallenatos" icon="fa-microphone-lines" active={activeStream === RADIO_STREAM_VALLENATOS} color="bg-yellow-500" onClick={() => switchStream(RADIO_STREAM_VALLENATOS)} nowPlaying={activeStream === RADIO_STREAM_VALLENATOS ? nowPlaying : null} />
+            <StreamBtn label="Rock" icon="fa-guitar" active={activeStream === RADIO_STREAM_ROCK} color="bg-red-500" onClick={() => switchStream(RADIO_STREAM_ROCK)} nowPlaying={activeStream === RADIO_STREAM_ROCK ? nowPlaying : null} />
+            <StreamBtn label="Baladas" icon="fa-heart" active={activeStream === RADIO_STREAM_BALADAS} color="bg-rose-500" onClick={() => switchStream(RADIO_STREAM_BALADAS)} nowPlaying={activeStream === RADIO_STREAM_BALADAS ? nowPlaying : null} />
+            <StreamBtn label="Huaynos" icon="fa-compact-disc" active={activeStream === RADIO_STREAM_HUAYNOS} color="bg-orange-500" onClick={() => switchStream(RADIO_STREAM_HUAYNOS)} nowPlaying={activeStream === RADIO_STREAM_HUAYNOS ? nowPlaying : null} />
+            <StreamBtn label="Urvan" icon="fa-car" active={activeStream === RADIO_STREAM_URVAN} color="bg-purple-500" onClick={() => switchStream(RADIO_STREAM_URVAN)} nowPlaying={activeStream === RADIO_STREAM_URVAN ? nowPlaying : null} />
+            <StreamBtn label="Tecno" icon="fa-bolt" active={activeStream === RADIO_STREAM_TECNO} color="bg-cyan-500" onClick={() => switchStream(RADIO_STREAM_TECNO)} nowPlaying={activeStream === RADIO_STREAM_TECNO ? nowPlaying : null} />
+            <StreamBtn label="Boleros" icon="fa-moon" active={activeStream === RADIO_STREAM_BOLEROS} color="bg-pink-700" onClick={() => switchStream(RADIO_STREAM_BOLEROS)} nowPlaying={activeStream === RADIO_STREAM_BOLEROS ? nowPlaying : null} />
+            <StreamBtn label="K-Pop Love" icon="fa-star" active={activeStream === RADIO_STREAM_KPOP} color="bg-fuchsia-500" onClick={() => switchStream(RADIO_STREAM_KPOP)} nowPlaying={activeStream === RADIO_STREAM_KPOP ? nowPlaying : null} />
           </div>
         </div>
       </section >
@@ -163,10 +180,17 @@ const HomeView: React.FC<HomeViewProps> = ({ onPlayToggle, isPlaying }) => {
   );
 };
 
-const StreamBtn = ({ label, icon, active, color, onClick }: any) => (
-  <button onClick={onClick} className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex flex-col items-center justify-center gap-2 ${active ? `${color} text-slate-900 shadow-[0_10px_25px_rgba(0,0,0,0.3)] scale-[1.02]` : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}>
+const StreamBtn = ({ label, icon, active, color, onClick, nowPlaying }: any) => (
+  <button onClick={onClick} className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex flex-col items-center justify-center gap-1.5 overflow-hidden ${active ? `${color} text-slate-900 shadow-[0_10px_25px_rgba(0,0,0,0.3)] scale-[1.02]` : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}>
     <i className={`fa-solid ${icon} text-lg`}></i>
-    {label}
+    <span>{label}</span>
+    {active && nowPlaying && (
+      <div className="w-full overflow-hidden px-2">
+        <p className={`text-[8px] font-bold whitespace-nowrap ${nowPlaying.length > 20 ? 'animate-marquee' : 'text-center'} opacity-80`}>
+          ♪ {nowPlaying}
+        </p>
+      </div>
+    )}
   </button>
 );
 
