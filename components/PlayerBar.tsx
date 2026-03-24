@@ -15,6 +15,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({ isPlaying, onPlayToggle }) => {
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [nowPlaying, setNowPlaying] = useState<string | null>(null);
 
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('radio_user_volume');
@@ -56,6 +57,21 @@ const PlayerBar: React.FC<PlayerBarProps> = ({ isPlaying, onPlayToggle }) => {
       console.warn('Web Audio API no disponible:', e);
     }
   };
+
+  useEffect(() => {
+    if (!isPlaying || !playerState.isLive) { setNowPlaying(null); return; }
+    const fetchNowPlaying = async () => {
+      try {
+        const url = playerState.source.split('?')[0];
+        const res = await fetch(`/.netlify/functions/nowplaying?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (data.title) setNowPlaying(data.title);
+      } catch { /* silencioso */ }
+    };
+    fetchNowPlaying();
+    const interval = setInterval(fetchNowPlaying, 30000);
+    return () => clearInterval(interval);
+  }, [isPlaying, playerState.source, playerState.isLive]);
 
   const goBackToLive = () => {
     const mainUrl = localStorage.getItem('radio_url_main_config') || RADIO_STREAM_URL;
@@ -185,8 +201,8 @@ const PlayerBar: React.FC<PlayerBarProps> = ({ isPlaying, onPlayToggle }) => {
                 {hasError ? "ERROR DE SEÑAL" : isLoading ? "SINTONIZANDO..." : playerState.isLive ? "RADIO EN VIVO" : "REPRODUCIENDO MP3"}
               </span>
             </div>
-            <h3 className="text-white font-black text-[10px] md:text-xs uppercase truncate">{playerState.title}</h3>
-            <p className="text-[#a3cf33] text-[8px] md:text-[9px] font-bold uppercase truncate opacity-80">{playerState.artist}</p>
+            <h3 className="text-white font-black text-[10px] md:text-xs uppercase truncate">{nowPlaying || playerState.title}</h3>
+            <p className="text-[#a3cf33] text-[8px] md:text-[9px] font-bold uppercase truncate opacity-80">{nowPlaying ? 'En vivo ahora' : playerState.artist}</p>
           </div>
         </div>
 
