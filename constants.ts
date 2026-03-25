@@ -11,8 +11,8 @@ export const RADIO_STREAM_BALADAS = 'https://stream-143.zeno.fm/ux9p55q8qeruv?zt
 export const RADIO_STREAM_FIESTA = 'https://stream-162.zeno.fm/yw5nn2g8bwbtv?zt';
 export const RADIO_STREAM_URVAN = 'https://stream-142.zeno.fm/bpwth3kkperuv?zt';
 export const RADIO_STREAM_TECNO = 'https://stream-160.zeno.fm/mn7vx0utdfhvv?zt';
-export const RADIO_STREAM_BOLEROS = 'https://stream-157.zeno.fm/b10wvksv7mruv?zt';
-export const RADIO_STREAM_KPOP = 'https://stream-156.zeno.fm/0gmdtr2rsf9uv?zt';
+export const RADIO_STREAM_BOLEROS = 'https://stream-159.zeno.fm/qw3at85dqrhvv?zt';
+export const RADIO_STREAM_KPOP = 'https://stream-159.zeno.fm/66xq9u1d2c9uv?zt';
 
 export const WHATSAPP_URL = 'https://wa.me/51900758816';
 export const GREETINGS_WHATSAPP = 'https://wa.me/51933067069'; // Saludos en vivo (Moderador)
