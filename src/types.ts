@@ -1,67 +1,83 @@
-
-export enum NavTab {
-  HOME = 'home',
-  VIDEOS = 'videos',
-  SHORTS = 'shorts',
-  EVENTS = 'events',
-  CHAT = 'chat',
-  SETTINGS = 'settings',
-  MUSIC = 'music',
-  POLLS = 'polls',
-  SPOTIFY = 'spotify',
-  GREETINGS = 'greetings',
-  LISTENER_CHAT = 'listener_chat'
+export interface Contact {
+  id: string;
+  name: string;
+  company: string;
+  role: string;
+  status: 'lead' | 'opportunity' | 'customer' | 'inactive';
+  lastContact: string;
+  email?: string;
+  phone?: string;
+  segments: string[];
+  machinery?: Machine[];
+  insights?: string[];
+  activities?: Activity[];
 }
 
-export interface RadioEvent {
+export interface Machine {
   id: string;
-  title: string;
+  model: string;
+  brand: string;
+  serial: string;
+  installDate: string;
+  lastMaintenance: string;
+  nextMaintenance: string;
+  status: 'operational' | 'warning' | 'down';
+}
+
+export interface Activity {
+  id: string;
   date: string;
-  location: string;
-  imageUrl: string;
-  description?: string;
+  type: 'call' | 'email' | 'meeting' | 'note' | 'maintenance';
+  content: string;
+  userId: string;
 }
 
-export interface YouTubeVideo {
-  id: string;
-  title: string;
-  thumbnail: string;
-  videoId: string;
+export interface LeadCaptureData {
+  name: string;
+  company: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  machineryInterests?: string[];
+  summary: string;
+  nextSteps: string[];
+  priority: 'high' | 'medium' | 'low';
 }
 
-export interface RadioShort {
+export interface ActNowAction {
   id: string;
-  title: string;
-  videoUrl: string;
-  thumbnail: string;
+  type: 'urgent' | 'followup' | 'maintenance';
+  target: string;
+  description: string;
+  due: string;
 }
 
-export interface MusicTrack {
+export interface Shipment {
   id: string;
-  title: string;
-  artist: string;
-  url: string; // URL del archivo MP3
+  trackingNumber: string;
+  item: string;
+  origin: string;
+  eta: string;
+  status: 'in-transit' | 'customs' | 'delivered';
+  docs: string[];
 }
 
-export interface RadioPollOption {
+export interface InventoryItem {
   id: string;
-  text: string;
-  votes: number;
+  sku: string;
+  name: string;
+  category: 'needles' | 'oil' | 'parts' | 'other';
+  stock: number;
+  minStock: number;
+  unit: string;
+  price: number;
 }
 
-export interface RadioPoll {
+export interface Invoice {
   id: string;
-  question: string;
-  totalVotes: number;
-  options: RadioPollOption[];
-}
-
-export interface LiveGreeting {
-  id: string;
-  from: string;      // De parte de
-  to: string;        // Para quién
-  message?: string;  // Mensaje opcional
-  audio_url?: string; // URL del audio grabado con micrófono
-  status: 'pending' | 'reading' | 'completed' | 'rejected';
-  timestamp: string;
+  customerName: string;
+  amount: number;
+  date: string;
+  dueDate: string;
+  status: 'paid' | 'pending' | 'overdue';
 }

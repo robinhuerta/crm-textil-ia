@@ -9,7 +9,7 @@ import { ActivityLogger } from './crm/components/ActivityLogger';
 import { InventoryView } from './crm/components/InventoryView';
 import { LogisticsView } from './crm/components/LogisticsView';
 import { FinanceView } from './crm/components/FinanceView';
-import { Contact } from './crm/types';
+import { Contact } from './types';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const App: React.FC = () => {
