@@ -1,10 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
 
-const API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY || "";
-const genAI = new GoogleGenAI({ apiKey: API_KEY });
+const getAIInstance = () => {
+  const API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY || "";
+  if (!API_KEY) {
+    console.warn("⚠️ Advertencia: VITE_GEMINI_API_KEY no detectada. La IA estará desactivada.");
+    return null;
+  }
+  return new GoogleGenAI({ apiKey: API_KEY });
+};
 
 export const extractLeadFromText = async (text: string) => {
-  if (!API_KEY) throw new Error("Falta la API Key de Gemini");
+  const genAI = getAIInstance();
+  if (!genAI) throw new Error("Falta la API Key de Gemini o la IA está desactivada.");
 
   const ai = genAI as any;
   const model = "gemini-1.5-flash";
@@ -47,7 +54,8 @@ export const extractLeadFromText = async (text: string) => {
 };
 
 export const extractLeadFromImage = async (base64Image: string) => {
-  if (!API_KEY) throw new Error("Falta la API Key de Gemini");
+  const genAI = getAIInstance();
+  if (!genAI) throw new Error("Falta la API Key de Gemini o la IA está desactivada.");
 
   const ai = genAI as any;
   const model = "gemini-1.5-flash";
