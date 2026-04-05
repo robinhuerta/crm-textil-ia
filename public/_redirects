@@ -1,7 +1,0 @@
-# PROXY SIMPLE (v5.0)
-# Redirige todo bajo /api/proxy/ a la raíz de Supabase
-# Client debe enviar la ruta completa: /api/proxy/rest/v1/radio_greetings
-/api/proxy/*  https://zplvreuiuosmmeoaeaz.supabase.co/:splat  200!
-
-# SPA FALLBACK
-/*  /index.html  200
