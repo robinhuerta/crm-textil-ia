@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Deal } from '../types';
+import { Deal } from '../../types';
 import { motion } from 'framer-motion';
 import { Calendar, DollarSign, Tag, Info } from 'lucide-react';
 

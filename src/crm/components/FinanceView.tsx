@@ -1,5 +1,5 @@
 import React from 'react';
-import { INITIAL_INVOICES, INITIAL_DEALS } from '../constants';
+import { INITIAL_INVOICES, INITIAL_DEALS } from '../../constants';
 import { 
   DollarSign, AlertTriangle, CheckCircle2, Clock, 
   TrendingUp, ArrowUpRight, FileText, MoreVertical, 

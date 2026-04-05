@@ -1,4 +1,4 @@
-import { Deal, Contact, ActNowAction } from '../types';
+import { Deal, Contact, ActNowAction } from '../../types';
 
 export const calculateActNowActions = (deals: Deal[], contacts: Contact[]): ActNowAction[] => {
   const actions: ActNowAction[] = [];

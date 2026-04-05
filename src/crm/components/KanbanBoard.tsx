@@ -13,8 +13,8 @@ import {
   defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Deal, DealStage } from '../types';
-import { STAGES, INITIAL_DEALS } from '../constants';
+import { Deal, DealStage } from '../../types';
+import { STAGES, INITIAL_DEALS } from '../../constants';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { createPortal } from 'react-dom';

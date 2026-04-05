@@ -1,6 +1,6 @@
 import React from 'react';
-import { Contact } from '../types';
-import { INITIAL_CONTACTS } from '../constants';
+import { Contact } from '../../types';
+import { INITIAL_CONTACTS } from '../../constants';
 import { 
   Search, 
   UserPlus, 

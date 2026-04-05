@@ -1,6 +1,6 @@
 import React from 'react';
-import { InventoryItem } from '../types';
-import { INITIAL_INVENTORY } from '../constants';
+import { InventoryItem } from '../../types';
+import { INITIAL_INVENTORY } from '../../constants';
 import { 
   Package, 
   AlertTriangle, 

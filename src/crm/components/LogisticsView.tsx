@@ -1,6 +1,6 @@
 import React from 'react';
-import { Shipment } from '../types';
-import { INITIAL_SHIPMENTS } from '../constants';
+import { Shipment } from '../../types';
+import { INITIAL_SHIPMENTS } from '../../constants';
 import { 
   Truck, 
   Anchor, 

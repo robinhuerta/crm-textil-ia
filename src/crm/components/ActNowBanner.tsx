@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActNowAction } from '../types';
+import { ActNowAction } from '../../types';
 import { 
   Zap, 
   AlertCircle, 

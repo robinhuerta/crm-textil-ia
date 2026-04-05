@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActNowBanner } from './ActNowBanner';
 import { calculateActNowActions } from '../utils/priorityEngine';
-import { INITIAL_DEALS, INITIAL_CONTACTS } from '../constants';
+import { INITIAL_DEALS, INITIAL_CONTACTS } from '../../constants';
 import { 
   BarChart3, 
   TrendingUp, 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Deal, Column } from '../types';
+import { Deal, Column } from '../../types';
 import { KanbanCard } from './KanbanCard';
 import { LayoutDashboard, MoreVertical } from 'lucide-react';
 
