@@ -1,106 +1,176 @@
-import { Contact, Machine, Shipment, InventoryItem, Invoice } from './types';
+import { Deal, Column, Contact, Shipment, InventoryItem, Invoice } from './types';
 
-export const SAMPLE_MACHINERY: Machine[] = [
+export const STAGES: Column[] = [
+  { id: 'new_lead', title: 'Nuevo Lead', icon: 'UserPlus' },
+  { id: 'quote', title: 'Cotización Maquinaria', icon: 'FileText' },
+  { id: 'negotiation', title: 'Negociación', icon: 'Handshake' },
+  { id: 'logistics', title: 'Importación en Progreso', icon: 'Ship' },
+  { id: 'closed_won', title: 'Ganado', icon: 'Trophy' }
+];
+
+export const INITIAL_DEALS: Deal[] = [
   {
-    id: 'm1',
-    model: 'CMS 530',
-    brand: 'Stoll',
-    serial: 'SN-9981-A',
-    installDate: '2023-01-15',
-    lastMaintenance: '2024-02-10',
-    nextMaintenance: '2024-05-10',
-    status: 'operational',
+    id: '1',
+    customerName: 'Textil Huánuco',
+    productName: 'Cotización Telar Circular',
+    value: 45000,
+    stage: 'quote',
+    priority: 'high',
+    lastActivity: 'Hace 2 días',
+    machineryDetails: { brand: 'Stoll', model: 'CMS 530' }
   },
   {
-    id: 'm2',
-    model: 'Mayer MCP 1.6',
-    brand: 'Mayer & Cie',
-    serial: 'MY-4422-Z',
-    installDate: '2022-06-20',
-    lastMaintenance: '2024-03-01',
-    nextMaintenance: '2024-04-10',
-    status: 'warning',
+    id: '2',
+    customerName: 'Tejidos del Centro',
+    productName: 'Repuestos de Ganchos',
+    value: 1200,
+    stage: 'negotiation',
+    priority: 'medium',
+    lastActivity: 'Hoy'
   },
   {
-    id: 'm3',
-    model: 'OVJA 1.6 E',
-    brand: 'Mayer & Cie',
-    serial: 'MY-1122-B',
-    installDate: '2021-11-05',
-    lastMaintenance: '2023-12-15',
-    nextMaintenance: '2024-03-30',
-    status: 'down',
+    id: '3',
+    customerName: 'Maquila Industrial',
+    productName: 'Mantenimiento Jacquard',
+    value: 800,
+    stage: 'new_lead',
+    priority: 'low',
+    lastActivity: 'Ayer'
+  },
+  {
+    id: '4',
+    customerName: 'Fibras del Norte',
+    productName: 'Importación de Agujas de Tejer',
+    value: 5500,
+    stage: 'logistics',
+    priority: 'medium',
+    lastActivity: 'Hace 3 días',
+    logisticsStatus: 'En Aduanas'
+  },
+  {
+    id: '5',
+    customerName: 'Inversiones Textiles',
+    productName: 'Nueva Línea de Producción',
+    value: 150000,
+    stage: 'negotiation',
+    priority: 'high',
+    lastActivity: 'Hace 1 hora',
+    machineryDetails: { brand: 'Picanol', model: 'OmniPlus-i' }
   }
 ];
 
-export const SAMPLE_CONTACTS: Contact[] = [
+export const INITIAL_CONTACTS: Contact[] = [
   {
     id: 'c1',
-    name: 'Alberto Morales',
-    company: 'Textil Huánuco',
-    role: 'Gerente General',
-    status: 'opportunity',
-    lastContact: '2024-03-25',
+    name: 'Ing. Alberto Morales',
+    role: 'Gerente de Producción',
+    companyId: 'comp1',
+    companyName: 'Textil Huánuco',
     email: 'amorales@textilhuanuco.com',
-    phone: '+51 987 654 321',
-    segments: ['Tejido Punto', 'Alto Valor'],
-    machinery: [SAMPLE_MACHINERY[0], SAMPLE_MACHINERY[2]],
-    insights: [
-      'Interesado en ampliar planta en Q3',
-      'Prefiere comunicación por WhatsApp',
-      'Crítico con tiempos de entrega de repuestos'
+    phone: '+51 984 555 123',
+    avatar: 'AM',
+    aiSummary: 'Interesado en modernización de planta. Valora mucho el soporte técnico posventa.',
+    lastInteraction: 'Hace 2 días',
+    dealCount: 2,
+    totalDealValue: 45000,
+    machines: [
+      { id: 'm1', brand: 'Stoll', model: 'CMS 530', year: 2018, status: 'operational' },
+      { id: 'm2', brand: 'Stoll', model: 'CMS 530', year: 2019, status: 'maintenance_required' }
     ],
     activities: [
-      { id: 'a1', date: '2024-03-25', type: 'call', content: 'Llamada de seguimiento sobre cotización de repuestos.', userId: 'user1' },
-      { id: 'a2', date: '2024-03-20', type: 'meeting', content: 'Visita presencial a planta. Revisión técnica de Stoll CMS 530.', userId: 'user1' }
+      { id: 'a1', type: 'call', date: '2026-04-03', content: 'Consulta sobre repuestos para telar circular.', user: 'Robin Huerta' },
+      { id: 'a2', type: 'note', date: '2026-04-01', content: 'Visitó el showroom para ver el nuevo modelo Jacquard.', user: 'Robin Huerta' }
     ]
   },
   {
     id: 'c2',
-    name: 'Elena Rodríguez',
-    company: 'Confecciones del Sur',
-    role: 'Jefa de Producción',
-    status: 'customer',
-    lastContact: '2024-03-28',
-    email: 'erodriguez@confesur.pe',
-    phone: '+51 912 345 678',
-    segments: ['Exportación', 'Prenda Terminada'],
-    machinery: [SAMPLE_MACHINERY[1]],
+    name: 'Mariana Vega',
+    role: 'Jefa de Compras',
+    companyId: 'comp2',
+    companyName: 'Tejidos del Centro',
+    email: 'mvega@tejidoscentro.pe',
+    phone: '+51 912 334 556',
+    avatar: 'MV',
+    aiSummary: 'Enfoque en consumibles (agujas, hilos). Compra recurrente mensual.',
+    lastInteraction: 'Hoy',
+    dealCount: 1,
+    totalDealValue: 1200,
+    machines: [
+      { id: 'm3', brand: 'Brother', model: 'KE-430HX', year: 2021, status: 'operational' }
+    ],
     activities: [
-      { id: 'a3', date: '2024-03-28', type: 'email', content: 'Envío de factura mensual de suministros.', userId: 'user1' }
+      { id: 'a3', type: 'email', date: '2026-04-04', content: 'Envió orden de compra para 500 agujas.', user: 'Robin Huerta' }
     ]
   }
 ];
 
-export const SAMPLE_SHIPMENTS: Shipment[] = [
+export const INITIAL_SHIPMENTS: Shipment[] = [
   {
     id: 's1',
-    trackingNumber: 'MSC-9283741',
-    item: '4 Telares Picanol OmniPlus',
-    origin: 'Amberes, Bélgica',
-    eta: '2024-04-15',
-    status: 'in-transit',
-    docs: ['BL-92837', 'Invoice-882', 'PL-882']
+    dealId: '1',
+    productName: 'Telar Circular Stoll CMS 530',
+    origin: 'Puerto de Hamburgo, Alemania',
+    destination: 'Puerto del Callao, Perú',
+    eta: '2026-04-15',
+    status: 'in_transit',
+    currentLocation: 'Atlántico Norte - Cerca de Azores',
+    vesselName: 'Ever Given II',
+    documents: [
+      { name: 'Bill of Lading', url: '#' },
+      { name: 'Factura Comercial', url: '#' }
+    ]
   },
   {
     id: 's2',
-    trackingNumber: 'DHL-3342110',
-    item: 'Agujas Groz-Beckert (10k pcs)',
+    dealId: '4',
+    productName: 'Lote de Agujas Groz-Beckert',
     origin: 'Albstadt, Alemania',
-    eta: '2024-04-02',
+    destination: 'Lima, Perú',
+    eta: '2026-04-10',
     status: 'customs',
-    docs: ['AWB-33421', 'Invoice-991']
+    currentLocation: 'Aduana del Callao',
+    documents: [
+      { name: 'Certificado de Origen', url: '#' }
+    ]
   }
 ];
 
-export const SAMPLE_INVENTORY: InventoryItem[] = [
-  { id: 'i1', sku: 'GB-VO71', name: 'Agujas VO 71.52 G03', category: 'needles', stock: 1250, minStock: 2000, unit: 'pcs', price: 1.25 },
-  { id: 'i2', sku: 'KL-OIL-T5', name: 'Aceite Klüber Silvertex T4', category: 'oil', stock: 45, minStock: 20, unit: 'litros', price: 18.50 },
-  { id: 'i3', sku: 'SL-530-CP', name: 'Cam Lock Stoll 530', category: 'parts', stock: 4, minStock: 5, unit: 'pcs', price: 340.00 }
+export const INITIAL_INVENTORY: InventoryItem[] = [
+  {
+    id: 'i1',
+    sku: 'GB-N-1234',
+    name: 'Agujas de Tejer Groz-Beckert',
+    category: 'needles',
+    stock: 2500,
+    minStock: 5000,
+    unit: 'unidades',
+    price: 0.85
+  },
+  {
+    id: 'i2',
+    sku: 'MA-O-5L',
+    name: 'Aceite de Tejeduría Mayer&Cie 5L',
+    category: 'oil',
+    stock: 120,
+    minStock: 50,
+    unit: 'bidones',
+    price: 45.00
+  },
+  {
+    id: 'i3',
+    sku: 'SP-H-99',
+    name: 'Hilo de Poliéster 40/2',
+    category: 'yarn',
+    stock: 850,
+    minStock: 200,
+    unit: 'conos',
+    price: 2.10
+  }
 ];
 
-export const SAMPLE_INVOICES: Invoice[] = [
-  { id: 'f-1022', customerName: 'Textil Huánuco', amount: 4500.00, date: '2024-03-01', dueDate: '2024-03-31', status: 'overdue' },
-  { id: 'f-1025', customerName: 'Fibras Pro', amount: 12500.00, date: '2024-03-15', dueDate: '2024-04-15', status: 'pending' },
-  { id: 'f-1020', customerName: 'Cotton S.A.', amount: 3200.00, date: '2024-02-25', dueDate: '2024-03-25', status: 'paid' }
+export const INITIAL_INVOICES: Invoice[] = [
+  { id: 'inv1', number: 'F001-2026', dealId: '1', clientName: 'Textil Huánuco', amount: 15000, date: '2026-03-20', dueDate: '2026-04-20', status: 'pending', type: 'factura' },
+  { id: 'inv2', number: 'B001-2026', dealId: '2', clientName: 'Tejidos del Centro', amount: 450, date: '2026-03-15', dueDate: '2026-04-15', status: 'paid', type: 'boleta' },
+  { id: 'inv3', number: 'F002-2026', dealId: '5', clientName: 'Inversiones Textiles', amount: 50000, date: '2026-02-10', dueDate: '2026-03-10', status: 'overdue', type: 'factura' },
+  { id: 'inv4', number: 'F003-2026', dealId: '4', clientName: 'Fibras del Norte', amount: 2750, date: '2026-04-01', dueDate: '2026-05-01', status: 'pending', type: 'factura' }
 ];

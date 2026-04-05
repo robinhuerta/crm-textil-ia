@@ -1,83 +1,106 @@
+export type DealStage = 'new_lead' | 'quote' | 'negotiation' | 'logistics' | 'closed_won';
+
+export interface Deal {
+  id: string;
+  customerName: string;
+  productName: string;
+  value: number;
+  stage: DealStage;
+  priority: 'low' | 'medium' | 'high';
+  lastActivity: string;
+  machineryDetails?: {
+    brand: string;
+    model: string;
+    year?: number;
+  };
+  logisticsStatus?: string;
+}
+
+export interface Column {
+  id: DealStage;
+  title: string;
+  icon: string;
+}
+
+export interface ContactActivity {
+  id: string;
+  type: 'call' | 'email' | 'meeting' | 'note' | 'maintenance';
+  date: string;
+  content: string;
+  user: string;
+}
+
+export interface InstalledMachine {
+  id: string;
+  brand: string;
+  model: string;
+  year: number;
+  serialNumber?: string;
+  lastMaintenance?: string;
+  status: 'operational' | 'down' | 'maintenance_required';
+}
+
 export interface Contact {
   id: string;
   name: string;
-  company: string;
   role: string;
-  status: 'lead' | 'opportunity' | 'customer' | 'inactive';
-  lastContact: string;
-  email?: string;
-  phone?: string;
-  segments: string[];
-  machinery?: Machine[];
-  insights?: string[];
-  activities?: Activity[];
-}
-
-export interface Machine {
-  id: string;
-  model: string;
-  brand: string;
-  serial: string;
-  installDate: string;
-  lastMaintenance: string;
-  nextMaintenance: string;
-  status: 'operational' | 'warning' | 'down';
-}
-
-export interface Activity {
-  id: string;
-  date: string;
-  type: 'call' | 'email' | 'meeting' | 'note' | 'maintenance';
-  content: string;
-  userId: string;
-}
-
-export interface LeadCaptureData {
-  name: string;
-  company: string;
-  role?: string;
-  email?: string;
-  phone?: string;
-  machineryInterests?: string[];
-  summary: string;
-  nextSteps: string[];
-  priority: 'high' | 'medium' | 'low';
+  companyId: string;
+  companyName: string;
+  email: string;
+  phone: string;
+  avatar?: string;
+  aiSummary?: string;
+  lastInteraction: string;
+  activities: ContactActivity[];
+  machines: InstalledMachine[];
+  dealCount: number;
+  totalDealValue: number;
 }
 
 export interface ActNowAction {
   id: string;
-  type: 'urgent' | 'followup' | 'maintenance';
-  target: string;
+  type: 'urgent' | 'followup' | 'opportunity';
+  title: string;
   description: string;
-  due: string;
+  targetId: string; // Deal ID or Contact ID
+  targetName: string;
+  score: number;
+  reason: string;
 }
 
 export interface Shipment {
   id: string;
-  trackingNumber: string;
-  item: string;
+  dealId: string;
+  productName: string;
   origin: string;
+  destination: string;
   eta: string;
-  status: 'in-transit' | 'customs' | 'delivered';
-  docs: string[];
+  status: 'at_origin' | 'in_transit' | 'customs' | 'delivered';
+  currentLocation: string;
+  vesselName?: string;
+  documents: { name: string; url: string }[];
 }
 
 export interface InventoryItem {
   id: string;
   sku: string;
   name: string;
-  category: 'needles' | 'oil' | 'parts' | 'other';
+  category: 'needles' | 'yarn' | 'spare_parts' | 'oil';
   stock: number;
   minStock: number;
   unit: string;
   price: number;
+  isCustomOrder?: boolean;
 }
 
 export interface Invoice {
   id: string;
-  customerName: string;
+  number: string;
+  dealId: string;
+  clientName: string;
   amount: number;
   date: string;
   dueDate: string;
   status: 'paid' | 'pending' | 'overdue';
+  type: 'factura' | 'boleta' | 'nota_credito';
 }
