@@ -1,7 +1,0 @@
-{
-  "name": "La Nueva 5:40 Radio",
-  "description": "Tu conexión directa con la mejor música, eventos en vivo y contenido exclusivo.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
-}
